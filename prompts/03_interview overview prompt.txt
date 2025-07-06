@@ -1,0 +1,13 @@
+Create a Salem University coaching guide with the following sections in order:
+
+1. **Header** (using 01_title prompt)
+2. **Great Moment** (using 02_most impactful statement prompt) 
+3. **Interview Scorecard** (using 04_interview scorecard prompt)
+4. **Talk/Listen Ratio Analysis** (using talk/listen ratio calculation)
+5. **Application Invitation Assessment** (using 05_application invitation assessment prompt)
+6. **Weekly Growth Plan** (using 06_weekly growth plan prompt)
+7. **Coaching Notes** (using 07_coaching notes prompt)
+
+Generate each section according to its specific prompt requirements, maintaining positive, growth-oriented language throughout. Focus on advancement opportunities rather than deficiencies, using the advisor's current performance level to guide development recommendations toward the next performance tier.
+
+The Talk/Listen Ratio Analysis should appear immediately after the Interview Scorecard section as a single table showing the conversation balance metrics.

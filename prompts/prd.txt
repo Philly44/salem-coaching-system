@@ -1,0 +1,285 @@
+# Salem University Coaching Guide System - Technical Product Requirements Document (Updated)
+
+## Executive Summary
+
+The Salem University Coaching Guide System is a deterministic AI evaluation engine that generates standardized coaching reports with 100% output consistency. The system processes advisor-student conversation transcripts through exact algorithmic criteria to produce identical results across multiple evaluations of the same input.
+
+## Critical Success Requirement
+
+**ZERO VARIANCE MANDATE**: The system MUST produce byte-for-byte identical outputs when processing the same input transcript multiple times. Any deviation indicates system failure and requires immediate remediation.
+
+## Complete Asset Collection & Processing Pipeline
+
+### Required Input Files (Complete Set)
+The system requires these 8 prompt files to generate the complete coaching guide:
+
+```
+ASSET COLLECTION:
+├── 01_title_prompt.txt                     → Header Generation
+├── 02_most_impactful_statement_prompt.txt  → Great Moment Identification  
+├── 03_interview_overview_prompt.txt        → System Overview & Coordination
+├── 04_interview_scorecard_prompt.txt       → Performance Evaluation Engine
+├── 05_application_invitation_assessment_prompt.txt → Invitation Analysis
+├── 06_weekly_growth_plan_prompt.txt        → Growth Strategy Generation
+├── 07_coaching_notes_prompt.txt            → Development Guidance
+└── 09_talk_time_prompt.txt                 → Talk/Listen Ratio Analysis
+```
+
+### Processing Pipeline Architecture (8-Module System)
+```
+INPUT → VALIDATION → MODULE_1 → MODULE_2 → MODULE_3 → MODULE_4 → MODULE_5 → MODULE_6 → MODULE_7 → MODULE_8 → OUTPUT
+   ↓        ↓         ↓         ↓         ↓         ↓         ↓         ↓         ↓         ↓         ↓
+REJECT   REJECT   HEADER   GREAT_MOMENT SCORECARD TALK_RATIO INVITATION GROWTH_PLAN COACHING  DELIVER
+```
+
+## Module-by-Module Architecture
+
+### Module 1: Header Generation Engine
+**File:** `01_title_prompt.txt`
+**Function:** Creates standardized header with advisor/student details and evaluation date
+**Output Format:** `** Advisor: [Name] | Student: [Name] | Program: [Program] | Call Length: [X] minutes | Evaluated On: [Date]**`
+
+### Module 2: Great Moment Identification Engine  
+**File:** `02_most_impactful_statement_prompt.txt`
+**Function:** Identifies and formats standout advisor moments using emoji rotation
+**Output Format:** 
+```
+## Great Moment
+**[EMOJI] "[QUOTE]"**
+*[MM:SS] - [CONTEXT]*
+```
+
+### Module 3: Interview Scorecard Engine (CRITICAL COMPONENT)
+**File:** `04_interview_scorecard_prompt.txt`
+**Function:** Objective performance evaluation across 5 sections with override rules
+**Sections Evaluated:**
+- Section 1: Program Interest & Rapport Building
+- Section 2: Program Structure & Information  
+- Section 3: School Resources & Support
+- Section 4: Financial Information & Payment Options
+- Section 5: Next Steps & Follow-up Planning
+
+**Critical Override Rules:**
+- ANY "Does Not Meet" section = "Does Not Meet" overall
+- ANY "Developing" section = "Developing" overall  
+- Overall performance CANNOT exceed lowest section
+
+### Module 4: Talk/Listen Ratio Analysis Engine (NEW)
+**File:** `09_talk_time_prompt.txt`
+**Function:** Deterministic conversation balance analysis with sales-based benchmarks
+**Algorithm:** Word count calculation → Percentage calculation → Performance level assignment
+**Output Format:**
+```
+| Talk/Listen Ratio | Performance Level | Industry Benchmark |
+|-------------------|--------------------|--------------------|
+| [X]% / [Y]% | [PERFORMANCE_LEVEL] | 43% / 57% (Optimal) |
+```
+
+**Performance Mapping:**
+- **Exceeds Expected Results**: 40-50% advisor talking (optimal range)
+- **Fully Effective**: 30-39% or 51-60% advisor talking
+- **Developing**: 20-29% or 61-75% advisor talking  
+- **Does Not Meet Expected Results**: Under 20% or 76%+ advisor talking
+
+### Module 5: Application Invitation Assessment Engine
+**File:** `05_application_invitation_assessment_prompt.txt`  
+**Function:** Evaluates appropriateness of application invitation timing
+**Output Format:**
+```
+| Question | Answer | Status |
+|----------|--------|--------|
+| Was student invited to apply? | [❌ No / ✅ Yes] | [Context] |
+| Was this appropriate? | [Assessment] | [Reason] |
+```
+
+### Module 6: Weekly Growth Plan Generator (DETERMINISTIC ENGINE)
+**File:** `06_weekly_growth_plan_prompt.txt`
+**Function:** Generates exact strategy combinations based on scorecard results
+**Algorithm:** Strategy 1 (Section 1 based) + Strategy 2 (Gap-based priority) + Focus Area calculation
+**Output:** Two specific strategies with key phrases and timing guidance
+
+### Module 7: Coaching Notes Generator  
+**File:** `07_coaching_notes_prompt.txt`
+**Function:** Performance-level specific developmental guidance using positive language
+**Approach:** Building upon strengths, advancement-focused, performance tier progression
+
+### Module 8: System Coordination & Integration (UPDATED)
+**File:** `03_interview_overview_prompt.txt`
+**Role:** Master orchestrator that coordinates all 8 modules
+**Responsibilities:**
+- Defines complete system workflow (now includes talk/listen ratio)
+- Ensures proper module sequencing  
+- Maintains output format consistency
+- Coordinates data flow between modules
+
+## System Coordination & Integration
+
+### Updated Coordination File
+**File:** `03_interview_overview_prompt.txt`
+**New Structure:**
+```
+1. Header (using 01_title prompt)
+2. Great Moment (using 02_most impactful statement prompt) 
+3. Interview Scorecard (using 04_interview scorecard prompt)
+4. Talk/Listen Ratio Analysis (using talk/listen ratio calculation)
+5. Application Invitation Assessment (using 05_application invitation assessment prompt)
+6. Weekly Growth Plan (using 06_weekly growth plan prompt)
+7. Coaching Notes (using 07_coaching notes prompt)
+```
+
+### Data Flow Architecture (Updated)
+```
+TRANSCRIPT INPUT
+    ↓
+01_title_prompt → Header Data
+    ↓
+02_most_impactful → Great Moment Selection
+    ↓  
+04_interview_scorecard → Performance Metrics (feeds into modules 4,5,6,7)
+    ↓
+09_talk_time → Talk/Listen Ratio Analysis (independent calculation)
+    ↓
+05_application_invitation → Invitation Assessment  
+    ↓
+06_weekly_growth_plan → Strategy Selection (feeds into module 7)
+    ↓
+07_coaching_notes → Development Guidance
+    ↓
+COMPLETE COACHING GUIDE OUTPUT
+```
+
+## Critical Implementation Requirements
+
+### File Dependency Management (Updated)
+1. **Module 3** (scorecard) must complete before Modules 5, 6, 7
+2. **Module 4** (talk/listen) is independent - can run parallel to scorecard
+3. **Module 6** (growth plan) must complete before Module 7
+4. **Module 8** (overview) coordinates timing and sequencing
+
+### Deterministic Processing Rules (Enhanced)
+1. **Identical inputs → Identical outputs** across all 8 modules
+2. **Exact string matching** for all pattern recognition
+3. **Algorithmic strategy selection** (no randomization)
+4. **Immutable templates** for all output formats
+5. **Consistent emoji rotation** with deterministic sequencing
+6. **Mathematical precision** in talk/listen ratio calculations
+
+## Final Output Format (8-Section Structure)
+
+```
+** Advisor: [Name] | Student: [Name] | Program: [Program] | Call Length: [X] minutes | Evaluated On: [Date]**
+
+## Great Moment
+[Great moment content from Module 2]
+
+# Interview Scorecard  
+[Complete scorecard from Module 3]
+
+[Talk/Listen ratio table from Module 4 - NO HEADER]
+
+[Application invitation table from Module 5]
+
+## Weekly Growth Plan
+[Growth strategies from Module 6]
+
+## Coaching Notes
+[Development guidance from Module 7]
+```
+
+## New Module 4 Specifications - Talk/Listen Ratio Analysis
+
+### Technical Requirements
+**Input Processing:**
+- Parse transcript for speaker identification (exact string matching)
+- Filter timestamps and non-speech content
+- Count words using whitespace splitting with empty filtering
+
+**Calculation Protocol:**
+- Word count: advisor_words + student_words = total_words
+- Percentage calculation: (speaker_words / total_words) * 100
+- Mandatory rounding: Math.round() to whole numbers only
+- Performance assignment: Exact range matching with IF/ELSE logic
+
+**Output Validation:**
+- Percentages must sum to 99-101% (accounting for rounding)
+- Performance level must match one of 4 exact strings
+- Table format must be byte-for-byte identical to template
+
+### Integration with Existing System
+- **Placement**: Between Interview Scorecard and Application Invitation
+- **Dependency**: Independent calculation (no input from other modules)
+- **Consistency**: Uses same performance terminology as scorecard
+- **Impact**: Provides additional coaching dimension beyond content evaluation
+
+## Success Metrics (Updated)
+
+### Technical Metrics
+- **Consistency Rate**: 100% identical outputs for identical inputs across all 8 modules
+- **Processing Time**: < 45 seconds for 10,000 word transcripts
+- **Error Rate**: < 0.01% malformed outputs
+- **Module Integration**: 100% successful data flow between dependent modules
+
+### Module-Specific Metrics
+- **Module 1**: 100% header format compliance
+- **Module 2**: 100% emoji rotation accuracy  
+- **Module 3**: 100% override rule enforcement
+- **Module 4**: 100% mathematical calculation accuracy (NEW)
+- **Module 5**: 100% assessment logic accuracy
+- **Module 6**: 100% strategy selection determinism
+- **Module 7**: 100% performance-level guidance matching
+
+## Quality Assurance Framework (Enhanced)
+
+### Pre-Deployment Testing
+Each of the 8 modules must pass:
+1. **Consistency Testing**: 1000 identical inputs → 1000 identical outputs
+2. **Integration Testing**: Proper data flow between dependent modules
+3. **Format Compliance**: Exact template adherence
+4. **Edge Case Handling**: Malformed input management
+5. **Performance Testing**: Processing time requirements
+6. **Mathematical Validation**: Talk/listen ratio calculation accuracy (NEW)
+
+### Talk/Listen Ratio Quality Validation (NEW)
+- **Calculation Accuracy**: Word counting algorithm precision
+- **Percentage Precision**: Rounding consistency across multiple runs
+- **Performance Mapping**: Correct assignment based on exact ranges
+- **Template Compliance**: Byte-for-byte table format matching
+- **Integration Seamless**: Proper placement between scorecard and invitation assessment
+
+## System Architecture Validation (Updated)
+
+### Module Dependencies Confirmed
+```
+Module 1 (Header) → Independent
+Module 2 (Great Moment) → Independent  
+Module 3 (Scorecard) → Independent
+Module 4 (Talk/Listen) → Independent (NEW)
+Module 5 (Invitation) → Independent
+Module 6 (Growth Plan) → Depends on Module 3
+Module 7 (Coaching) → Depends on Module 3
+Module 8 (Overview) → Coordinates all modules
+```
+
+### Error Handling Protocols (Enhanced)
+- **Missing File Dependencies**: System halt with specific error message
+- **Malformed Module Output**: Regeneration with error logging
+- **Integration Failures**: Graceful degradation with partial output
+- **Performance Timeouts**: System notification with diagnostic data
+- **Mathematical Errors**: Talk/listen calculation failure protocols (NEW)
+
+## Industry Context Integration
+
+### Sales-Based Benchmarks
+The talk/listen ratio analysis incorporates research-backed sales performance data:
+- **Optimal Ratio**: 43% advisor talking / 57% student listening
+- **Data Source**: Analysis of 25,000+ sales conversations
+- **Performance Ranges**: Aligned with for-profit college recruitment industry standards
+- **Coaching Focus**: Balance information delivery with student engagement
+
+### For-Profit College Recruitment Alignment
+- **Industry Reality**: Recruiters operate as sales professionals
+- **Performance Standards**: Conversation balance directly impacts enrollment conversion
+- **Professional Development**: Talk/listen coaching complements content evaluation
+- **Quality Assurance**: Provides quantitative measure of consultation effectiveness
+
+This comprehensive 8-module system ensures complete coaching guide generation with deterministic output, integrated conversation balance analysis, and professional-grade quality standards while maintaining the critical zero-variance requirement across all processing components.
