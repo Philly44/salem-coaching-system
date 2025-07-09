@@ -13,15 +13,21 @@ async function retryWithBackoff<T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error) {
+      // Type guard to check if error has the properties we need
+      const apiError = error as { status?: number; headers?: { get?: (key: string) => string } };
+      
       // Check if it's a 529 (overloaded) or 429 (rate limit) error
-      if ((error?.status === 529 || error?.status === 429) && attempt < maxRetries - 1) {
+      if ((apiError?.status === 529 || apiError?.status === 429) && attempt < maxRetries - 1) {
         // For rate limit errors, use the retry-after header if available
         let delay = baseDelay * Math.pow(2, attempt);
-        if (error?.status === 429 && error?.headers?.get('retry-after')) {
-          delay = parseInt(error.headers.get('retry-after')) * 1000 + 1000; // Add 1 second buffer
+        if (apiError?.status === 429 && apiError?.headers?.get) {
+          const retryAfter = apiError.headers.get('retry-after');
+          if (retryAfter) {
+            delay = parseInt(retryAfter) * 1000 + 1000; // Add 1 second buffer
+          }
         }
-        console.log(`API ${error.status === 429 ? 'rate limited' : 'overloaded'}, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+        console.log(`API ${apiError.status === 429 ? 'rate limited' : 'overloaded'}, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
