@@ -269,7 +269,7 @@ export async function POST(request: Request) {
             max_tokens: isGrowthPlan && !isHaiku ? 8192 : maxTokens,
             messages: [
               {
-                role: 'user',
+                role: 'user' as const,
                 content: `${prompt}\n\nTranscript:\n${transcript}`
               }
             ]
