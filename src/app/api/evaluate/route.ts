@@ -4,6 +4,113 @@ import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+// Helper function to remove AI preamble text
+function removePreamble(text: string): string {
+  // Common preamble patterns to remove
+  const preamblePatterns = [
+    /^I'll\s+evaluate.*?\n+/i,
+    /^I\s+will\s+evaluate.*?\n+/i,
+    /^Let\s+me\s+evaluate.*?\n+/i,
+    /^I'm\s+going\s+to.*?\n+/i,
+    /^I\s+need\s+to.*?\n+/i,
+    /^First,?\s+I'll.*?\n+/i,
+    /^To\s+evaluate.*?\n+/i,
+    /^Based\s+on.*?\n+/i,
+    /^After\s+reviewing.*?\n+/i,
+    /^Looking\s+at.*?\n+/i,
+    /^I've\s+analyzed.*?\n+/i,
+    /^I\s+have\s+analyzed.*?\n+/i,
+    /^Here's\s+my\s+evaluation.*?\n+/i,
+    /^Here\s+is\s+my\s+evaluation.*?\n+/i,
+    /^Following\s+the.*?\n+/i,
+    /^Using\s+the.*?\n+/i,
+    /^Applying\s+the.*?\n+/i,
+    /^According\s+to.*?\n+/i,
+    /^Per\s+the.*?\n+/i,
+    /^I'll\s+create.*?\n+/i,
+    /^I\s+will\s+create.*?\n+/i,
+    /^Let\s+me\s+create.*?\n+/i,
+    /^Creating.*?\n+/i,
+    /^Now\s+I'll.*?\n+/i,
+    /^Now\s+let\s+me.*?\n+/i,
+    /^I'll\s+analyze.*?\n+/i,
+    /^I\s+will\s+analyze.*?\n+/i,
+    /^Analyzing.*?\n+/i,
+    /^I'll\s+assess.*?\n+/i,
+    /^I\s+will\s+assess.*?\n+/i,
+    /^Assessing.*?\n+/i,
+    /^Thank\s+you\s+for.*?\n+/i,
+    /^I\s+understand.*?\n+/i,
+    /^Sure,?\s+I'll.*?\n+/i,
+    /^Of\s+course,?\s+I'll.*?\n+/i,
+    /^I'd\s+be\s+happy\s+to.*?\n+/i,
+    /^.*?scoring\s+protocol.*?\.\s*\n+/i,
+    /^.*?evaluation\s+criteria.*?\.\s*\n+/i,
+    /^.*?detailed\s+scorecard.*?\.\s*\n+/i,
+    // Email-specific patterns
+    /^.*?write.*?email.*?\.\s*\n+/i,
+    /^.*?craft.*?follow-up.*?\.\s*\n+/i,
+    /^.*?create.*?personalized.*?\.\s*\n+/i,
+    /^Writing\s+as\s+the\s+advisor.*?\n+/i,
+    /^Following\s+the\s+instructions.*?\n+/i,
+    /^Based\s+on\s+the\s+transcript.*?\n+/i,
+    /^Here's\s+the\s+email.*?\n+/i,
+    /^Here\s+is\s+the\s+email.*?\n+/i,
+    /^I've\s+written.*?\n+/i,
+    /^I\s+have\s+written.*?\n+/i,
+    /^The\s+email\s+is.*?\n+/i,
+    /^This\s+email.*?\n+/i,
+  ];
+  
+  let cleanedText = text.trim();
+  
+  // Remove any matching preamble patterns
+  for (const pattern of preamblePatterns) {
+    cleanedText = cleanedText.replace(pattern, '');
+  }
+  
+  // Also remove any sentences before the first heading or expected content
+  // For scorecard, it should start with "# Interview Scorecard"
+  if (cleanedText.includes('# Interview Scorecard')) {
+    const scorecardStart = cleanedText.indexOf('# Interview Scorecard');
+    if (scorecardStart > 0) {
+      cleanedText = cleanedText.substring(scorecardStart);
+    }
+  }
+  
+  // For other sections, check for their expected starts
+  const expectedStarts = [
+    '# Title:',
+    '**Title:**',
+    '# Most Impactful Statement',
+    '**Most Impactful Statement**',
+    '# Talk/Listen Ratio Analysis',
+    '**Talk/Listen Ratio',
+    '# Application Invitation Assessment',
+    '**Application Invitation',
+    '# Weekly Growth Plan',
+    '**Weekly Growth Plan',
+    '# Coaching Notes',
+    '**Coaching Notes',
+    '## ',
+    '### ',
+    '| Section',
+    '**Section',
+  ];
+  
+  for (const start of expectedStarts) {
+    if (cleanedText.includes(start)) {
+      const contentStart = cleanedText.indexOf(start);
+      if (contentStart > 0 && contentStart < 200) { // Only trim if preamble is reasonably short
+        cleanedText = cleanedText.substring(contentStart);
+        break;
+      }
+    }
+  }
+  
+  return cleanedText.trim();
+}
+
 // Helper function to retry API calls when overloaded or rate limited
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
@@ -27,7 +134,6 @@ async function retryWithBackoff<T>(
             delay = parseInt(retryAfter) * 1000 + 1000; // Add 1 second buffer
           }
         }
-        console.log(`API ${apiError.status === 429 ? 'rate limited' : 'overloaded'}, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -46,14 +152,11 @@ async function processBatch<T>(
   
   for (let i = 0; i < promises.length; i += batchSize) {
     const batch = promises.slice(i, i + batchSize);
-    console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(promises.length / batchSize)} (${batch.length} requests)`);
-    
     const batchResults = await Promise.all(batch.map(fn => fn()));
     results.push(...batchResults);
     
     // Add a small delay between batches to avoid rate limits
     if (i + batchSize < promises.length) {
-      console.log('Waiting 3 seconds before next batch...');
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
@@ -64,11 +167,22 @@ async function processBatch<T>(
 export async function POST(request: Request) {
   try {
     const { transcript } = await request.json();
-    console.log('Received transcript length:', transcript?.length || 0);
 
     if (!transcript) {
       return NextResponse.json(
         { error: 'Transcript is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate transcript has minimum content
+    if (typeof transcript !== 'string' || transcript.trim().length < 100) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid transcript',
+          details: 'Transcript must be a string with at least 100 characters',
+          hint: 'Please provide a complete conversation transcript between advisor and student'
+        },
         { status: 400 }
       );
     }
@@ -78,8 +192,6 @@ export async function POST(request: Request) {
     
     // Check if API key is configured
     if (!API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not configured');
-      console.error('Environment variables:', Object.keys(process.env).filter(key => key.includes('ANTHROPIC')));
       return NextResponse.json(
         { error: 'API key not configured. Please set ANTHROPIC_API_KEY environment variable.' },
         { status: 500 }
@@ -100,10 +212,9 @@ export async function POST(request: Request) {
       '05_application invitation assessment prompt.txt',
       '06_weekly growth plan prompt.txt',
       '07_coaching notes prompt.txt',
-      '',  // Email blast - missing, will skip
+      '08_email_blast_prompt.txt',  // Email blast prompt
     ];
 
-    console.log('Loading prompts...');
     const prompts = [];
     for (let i = 0; i < promptFiles.length; i++) {
       const file = promptFiles[i];
@@ -111,18 +222,24 @@ export async function POST(request: Request) {
       // Skip empty filename (missing email blast)
       if (!file) {
         prompts.push('No email blast prompt available');
-        console.log(`Prompt ${i + 1}: Skipped (file missing)`);
         continue;
       }
       
       try {
         const filePath = join(process.cwd(), 'prompts', file);
         const content = readFileSync(filePath, 'utf-8');
-        console.log(`Loaded prompt ${i + 1}: ${file} (${content.length} chars)`);
         prompts.push(content);
       } catch (error) {
-        console.error(`Error loading prompt ${file}:`, error);
-        prompts.push(`Error loading ${file}`);
+        console.error(`Error loading prompt file ${file}:`, error);
+        // Return a more detailed error response
+        return NextResponse.json(
+          { 
+            error: `Failed to load prompt file: ${file}`,
+            details: error instanceof Error ? error.message : 'Unknown error',
+            hint: 'Please ensure all prompt files are present in the prompts directory'
+          },
+          { status: 500 }
+        );
       }
     }
 
@@ -139,8 +256,6 @@ export async function POST(request: Request) {
         
         // Use appropriate max_tokens based on model
         const maxTokens = isHaiku ? 4096 : 8192;
-        
-        console.log(`Executing request ${index + 1} with model: ${model} (max_tokens: ${maxTokens})`);
         
         // Wrap the API call with retry logic
         return retryWithBackoff(() => 
@@ -159,15 +274,12 @@ export async function POST(request: Request) {
     });
 
     // Execute evaluations in batches
-    console.log('Starting batched evaluation of 7 prompts...');
-    console.log('Models: 2 Haiku (title, app invitation), 5 Sonnet (rest)');
     const startTime = Date.now();
     
     // Process in batches of 2 to stay under rate limits
     const responses = await processBatch(evaluationFunctions, 2);
     
     const endTime = Date.now();
-    console.log(`Evaluation completed in ${(endTime - startTime) / 1000}s`);
 
     // Extract content from responses - REMOVED OVERVIEW
     const results = {
@@ -196,23 +308,29 @@ export async function POST(request: Request) {
     responses.forEach((response, index) => {
       const key = responseMapping[index];
       if (response.content && response.content[0] && response.content[0].type === 'text') {
-        results[key as keyof typeof results] = response.content[0].text;
-        console.log(`Result ${index + 1} (${key}): ${response.content[0].text.substring(0, 100)}...`);
+        // Apply preamble removal to clean the AI response
+        const rawText = response.content[0].text;
+        let cleanedText = removePreamble(rawText);
+        
+        // Special validation for email blast - ensure it starts with Subject:
+        if (key === 'emailBlast' && !cleanedText.startsWith('Subject:')) {
+          const subjectIndex = cleanedText.indexOf('Subject:');
+          if (subjectIndex > 0) {
+            cleanedText = cleanedText.substring(subjectIndex);
+          }
+        }
+        
+        results[key as keyof typeof results] = cleanedText;
       } else {
-        console.error(`No text content in response ${index + 1} (${key})`);
+        // No text content in response
+        console.warn(`No text content in response for ${key}`);
+        results[key as keyof typeof results] = `Error: No response generated for ${key}`;
       }
     });
 
-    console.log('Sending results back to client');
     return NextResponse.json(results);
 
   } catch (error) {
-    console.error('Error in evaluation:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    
     return NextResponse.json(
       { error: 'Failed to process evaluation', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

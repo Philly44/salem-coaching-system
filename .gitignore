@@ -44,3 +44,16 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# logs
+*.log
+dev.log
+install.log
+
+# backups
+backup-*/
+backups/
+
+# editor
+.vscode/
+.claude/

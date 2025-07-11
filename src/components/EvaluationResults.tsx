@@ -156,6 +156,20 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             // Fallback if no Strategy #1 found - just show cleaned content
             cleanedContent = cleaned;
           }
+        } else if (result.category === 'Follow-up Email') {
+          // Special handling for email content
+          const cleaned = removeDuplicateHeading(result.content, result.category);
+          
+          // Extract subject line and body
+          const subjectMatch = cleaned.match(/Subject:\s*(.+?)(?:\n|$)/i);
+          const bodyMatch = cleaned.match(/(?:Subject:.+?\n\n?)([\s\S]+)/i);
+          
+          if (subjectMatch && bodyMatch) {
+            // Format as proper email display
+            cleanedContent = `**Subject:** ${subjectMatch[1]}\n\n---\n\n${bodyMatch[1].trim()}`;
+          } else {
+            cleanedContent = cleaned;
+          }
         } else {
           cleanedContent = removeDuplicateHeading(result.content, result.category);
         }

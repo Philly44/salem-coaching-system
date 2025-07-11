@@ -1,5 +1,7 @@
 # Interview Scorecard Prompt - Objective Scoring System
 
+IMPORTANT: Begin your response directly with the scorecard output. Do not include any introductory text, explanations, or statements about what you will do. Start immediately with "# Interview Scorecard".
+
 Create a scorecard evaluation following the EXACT format and objective criteria outlined below. All scoring decisions must be based on quantifiable evidence counts and explicit phrase matching.
 
 ## MANDATORY SCORING PROTOCOL
