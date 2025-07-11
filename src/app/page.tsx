@@ -12,316 +12,400 @@ interface EvaluationResult {
 // Hardcoded jokes for loading entertainment
 const JOKES = [
   {
-    question: "I asked if I could major in dad jokes.",
-    answer: "My advisor said, 'We'll humor you.'"
+    question: "Why don't scientists trust atoms?",
+    answer: "They make up everything!"
   },
   {
-    question: "I asked if I could pay my fees in pennies.",
-    answer: "The advisor said, 'That makes no cents.'"
+    question: "Why did the bicycle fall over?",
+    answer: "It was two-tired!"
   },
   {
-    question: "I asked if my application looked good.",
-    answer: "The advisor said, 'With open enrollment, they all look good to us!'"
+    question: "What do you call a fake noodle?",
+    answer: "An impasta!"
   },
   {
-    question: "I asked if my dog could attend classes with me.",
-    answer: "The advisor said, 'Sorry, no pets allowed—we already have too many eager puppies in freshman year!'"
+    question: "Why don't eggs tell jokes?",
+    answer: "They'd crack each other up!"
   },
   {
-    question: "I asked if there was a dress code.",
-    answer: "My advisor said, 'Yes, clothes are generally required.'"
+    question: "What do you call a bear with no teeth?",
+    answer: "A gummy bear!"
   },
   {
-    question: "I asked if there was a shortcut to graduation.",
-    answer: "My advisor said, 'Yes, it's called attending classes.'"
+    question: "Why did the scarecrow win an award?",
+    answer: "He was outstanding in his field!"
   },
   {
-    question: "I asked my advisor for the secret to college success.",
-    answer: "They whispered, 'Attending class,' like it was classified information."
+    question: "What do you call a dinosaur that crashes his car?",
+    answer: "Tyrannosaurus Wrecks!"
   },
   {
-    question: "I asked my advisor if college would be hard.",
-    answer: "They said, 'It's not about hard or easy—it's about finding what works for you.' I said, 'That's exactly what my hairstylist said.'"
+    question: "Why can't a bicycle stand up by itself?",
+    answer: "It's two tired!"
   },
   {
-    question: "I asked my advisor if I needed test scores for admission.",
-    answer: "They said, 'With open enrollment, the only test is showing up!'"
+    question: "What did the ocean say to the beach?",
+    answer: "Nothing, it just waved!"
   },
   {
-    question: "I asked my advisor if I needed to be smart to succeed.",
-    answer: "They said, 'No, just smart enough to ask for help when you need it.'"
+    question: "Why did the math book look so sad?",
+    answer: "Because it had too many problems!"
   },
   {
-    question: "I asked my advisor if they liked puns.",
-    answer: "They said, 'Only if they're class-y.'"
+    question: "What do you call cheese that isn't yours?",
+    answer: "Nacho cheese!"
   },
   {
-    question: "I told my advisor I wanted to take a class on ice cream making.",
-    answer: "They said that was a sweet choice!"
+    question: "Why did the cookie go to the doctor?",
+    answer: "Because it felt crumbly!"
   },
   {
-    question: "I told my advisor I was anxious about starting college.",
-    answer: "They said, 'Don't worry, that feeling is universally accepted.'"
+    question: "What do you call a pile of cats?",
+    answer: "A meowtain!"
   },
   {
-    question: "I told my advisor I was worried about making friends.",
-    answer: "They said, 'Don't worry, you're already friendly with financial aid.'"
+    question: "Why did the coffee file a police report?",
+    answer: "It got mugged!"
   },
   {
-    question: "I tried to make a joke about financial aid,",
-    answer: "but my advisor said that wasn't very fund-ny."
+    question: "What's orange and sounds like a parrot?",
+    answer: "A carrot!"
   },
   {
-    question: "My advisor asked what interests me.",
-    answer: "I said, 'Low tuition rates,' and they high-fived me."
+    question: "Why don't skeletons fight each other?",
+    answer: "They don't have the guts!"
   },
   {
-    question: "My advisor asked why I applied.",
-    answer: "I said, 'College seemed like a bright idea—now I'm en-light-ened.'"
+    question: "What did one wall say to the other wall?",
+    answer: "I'll meet you at the corner!"
   },
   {
-    question: "My advisor congratulated me on being accepted.",
-    answer: "I said, 'That's the first time my procrastination has been rewarded.'"
+    question: "Why did the golfer bring two pairs of pants?",
+    answer: "In case he got a hole in one!"
   },
   {
-    question: "My advisor said college is about finding yourself.",
-    answer: "I asked, 'What if I prefer the old me?'"
+    question: "What do you call a factory that makes good products?",
+    answer: "A satisfactory!"
   },
   {
-    question: "My advisor said I was now part of the college family.",
-    answer: "I asked, 'Does that mean I can borrow money without returning it?'"
+    question: "Why did the picture go to jail?",
+    answer: "Because it was framed!"
   },
   {
-    question: "My advisor said my future looks bright.",
-    answer: "I asked if they could tone down the optimism—I forgot my sunglasses."
+    question: "What do you call a can opener that doesn't work?",
+    answer: "A can't opener!"
   },
   {
-    question: "My advisor said to prepare for my future.",
-    answer: "I said, 'I can barely prepare breakfast.'"
+    question: "Why did the stadium get hot after the game?",
+    answer: "All the fans left!"
   },
   {
-    question: "My advisor said, 'Congratulations on enrolling!'",
-    answer: "I said, 'Thanks, I really applied myself.'"
+    question: "What do you call a snowman with a six-pack?",
+    answer: "An abdominal snowman!"
   },
   {
-    question: "My advisor told me college would open doors.",
-    answer: "I asked if I needed to bring my own doorstop."
+    question: "Why did the computer go to the doctor?",
+    answer: "It had a virus!"
   },
   {
-    question: "My advisor told me to follow my passion.",
-    answer: "I said, 'My passion is napping, so I'm heading to the library.'"
+    question: "What's the best thing about Switzerland?",
+    answer: "I don't know, but the flag is a big plus!"
   },
   {
-    question: "My advisor told me to pace myself.",
-    answer: "I said, 'I'm more of a sprinter than a marathon runner.'"
+    question: "Why don't oysters share?",
+    answer: "Because they're shellfish!"
   },
   {
-    question: "My advisor told me to think outside the box.",
-    answer: "I said, 'Is that why the dorm rooms are so small?'"
+    question: "What do you call a sleeping bull?",
+    answer: "A bulldozer!"
   },
   {
-    question: "The admissions advisor tried to tell me a joke about enrollment statistics,",
-    answer: "but there was no point."
+    question: "Why did the banana go to the doctor?",
+    answer: "It wasn't peeling well!"
   },
   {
-    question: "The advisor asked about my career goals.",
-    answer: "I said, 'To make enough money to pay off the career I'm about to start.'"
+    question: "What do you call a boomerang that doesn't come back?",
+    answer: "A stick!"
   },
   {
-    question: "The advisor asked what motivated me to pursue education.",
-    answer: "I said, 'My mom found my Xbox.'"
+    question: "Why did the invisible man turn down the job offer?",
+    answer: "He couldn't see himself doing it!"
   },
   {
-    question: "The advisor said I should focus on my strengths.",
-    answer: "I told them I could lift a couch by myself, and they said, 'Maybe focus on academic strengths.'"
+    question: "What do you call a bear in the rain?",
+    answer: "A drizzly bear!"
   },
   {
-    question: "The advisor said I'd need a student ID.",
-    answer: "I asked if they'd accept my 'World's Best Napper' certificate instead."
+    question: "Why was the broom late?",
+    answer: "It over-swept!"
   },
   {
-    question: "The advisor said, 'College is a time of discovery.'",
-    answer: "I replied, 'I hope I discover where all my tuition money went.'"
+    question: "What do you call a line of rabbits jumping backwards?",
+    answer: "A receding hare-line!"
   },
   {
-    question: "The advisor said, 'Welcome to college!'",
-    answer: "I said, 'That's the most accepting thing anyone's ever said to me.'"
+    question: "Why don't vampires go to barbecues?",
+    answer: "They don't like steak!"
   },
   {
-    question: "The advisor said, 'Your academic future is in your hands.'",
-    answer: "I replied, 'That explains the sweaty palms.'"
+    question: "What did the grape say when it got stepped on?",
+    answer: "Nothing, it just let out a little wine!"
   },
   {
-    question: "The advisor said, 'Your educational journey begins now!'",
-    answer: "I said, 'That's a relief. The parking journey was exhausting.'"
+    question: "Why did the belt get arrested?",
+    answer: "For holding up a pair of pants!"
   },
   {
-    question: "The advisor told me open enrollment means everyone gets in.",
-    answer: "I said, 'That's the most inclusive thing I've heard since my group hug attempt failed.'"
+    question: "What do you call a fish wearing a crown?",
+    answer: "A king fish!"
   },
   {
-    question: "The advisor told me open enrollment was as easy as ABC.",
-    answer: "I said, 'That's the most basic thing I've heard all day.'"
+    question: "Why did the tomato turn red?",
+    answer: "Because it saw the salad dressing!"
   },
   {
-    question: "What did the advisor call the enrollment process?",
-    answer: "A formality, not a for-manatee—those are completely different!"
+    question: "What do you call a parade of rabbits hopping backwards?",
+    answer: "A receding hare-line!"
   },
   {
-    question: "What did the advisor say about choosing classes?",
-    answer: "'Choose wisely—unlike your Netflix decisions at 2 AM.'"
+    question: "Why did the cookie cry?",
+    answer: "Because his mom was a wafer so long!"
   },
   {
-    question: "What did the advisor say about student orientation?",
-    answer: "'It's where we help you get your degree... of comfort on campus!'"
+    question: "What do you call a factory that sells passable products?",
+    answer: "A satisfactory!"
   },
   {
-    question: "What did the advisor say to the indecisive student?",
-    answer: "'Don't worry, our door is always open... literally, it's open enrollment!'"
+    question: "Why did the chicken go to the séance?",
+    answer: "To talk to the other side!"
   },
   {
-    question: "What did the advisor say when I asked about classroom sizes?",
-    answer: "'They're just right—not too big, not too small, just like Goldilocks' perfect porridge!'"
+    question: "What do you call a lazy kangaroo?",
+    answer: "A pouch potato!"
   },
   {
-    question: "What did the advisor say when I couldn't decide on a major?",
-    answer: "'Don't worry, un-decision is the first step to the right decision.'"
+    question: "Why did the mushroom go to the party?",
+    answer: "Because he was a fungi!"
   },
   {
-    question: "What did the advisor say when I finished my application?",
-    answer: "'Con-grad-ulations on taking the first step!'"
+    question: "What do you call a fish with no eyes?",
+    answer: "Fsh!"
   },
   {
-    question: "What did the advisor say when I submitted my form?",
-    answer: "'This is a form-idable start to your education!'"
+    question: "Why did the computer keep freezing?",
+    answer: "It left its Windows open!"
   },
   {
-    question: "What do admissions advisors eat for breakfast?",
-    answer: "Enrollment O's!"
+    question: "What do you call a group of disorganized cats?",
+    answer: "A cat-astrophe!"
   },
   {
-    question: "What do you call an admissions advisor on a bicycle?",
-    answer: "A cycle-logical supporter!"
+    question: "Why did the student eat his homework?",
+    answer: "Because the teacher said it was a piece of cake!"
   },
   {
-    question: "What do you call an admissions advisor who loves coffee?",
-    answer: "A brew-tiful helper!"
+    question: "What do you call an alligator in a vest?",
+    answer: "An investigator!"
   },
   {
-    question: "What do you call an admissions advisor with a cold?",
-    answer: "Full of good ad-vice!"
+    question: "Why don't mountains ever get cold?",
+    answer: "They wear snow caps!"
   },
   {
-    question: "What's an advisor's favorite kind of music?",
-    answer: "Enroll and rock!"
+    question: "What did the janitor say when he jumped out of the closet?",
+    answer: "Supplies!"
   },
   {
-    question: "What's an advisor's favorite movie genre?",
-    answer: "Coming-of-age stories with happy endings!"
+    question: "Why did the teddy bear say no to dessert?",
+    answer: "Because she was stuffed!"
   },
   {
-    question: "What's an advisor's favorite part of the job?",
-    answer: "Watching students succeed—no joke there, just truth!"
+    question: "What do you call a dog magician?",
+    answer: "A labracadabrador!"
   },
   {
-    question: "What's an advisor's favorite season?",
-    answer: "Fall... and spring, and summer enrollment!"
+    question: "Why did the gym close down?",
+    answer: "It just didn't work out!"
   },
   {
-    question: "What's the difference between an advisor and a GPS?",
-    answer: "The advisor cares if you reach your destination!"
+    question: "What do you call a pencil with two erasers?",
+    answer: "Pointless!"
   },
   {
-    question: "Why are admissions advisors so good at math?",
-    answer: "They're always calculating student success!"
+    question: "Why did the clock go to the principal's office?",
+    answer: "For tocking too much!"
   },
   {
-    question: "Why did the admissions advisor become a meteorologist?",
-    answer: "They were already experts at predicting bright futures!"
+    question: "What do you call a cow with no legs?",
+    answer: "Ground beef!"
   },
   {
-    question: "Why did the advisor always carry a map?",
-    answer: "To help students find their way to class and through life!"
+    question: "Why did the orange stop?",
+    answer: "It ran out of juice!"
   },
   {
-    question: "Why did the advisor always smile?",
-    answer: "It's impossible to frown when you're helping dreams come true!"
+    question: "What do you call a bird that's afraid of heights?",
+    answer: "A chicken!"
   },
   {
-    question: "Why did the advisor become a gardener?",
-    answer: "They enjoyed watching students grow!"
+    question: "Why did the calendar feel depressed?",
+    answer: "Its days were numbered!"
   },
   {
-    question: "Why did the advisor bring a ladder to the enrollment fair?",
-    answer: "To help students reach their highest potential!"
+    question: "What do you call a shoe made of a banana?",
+    answer: "A slipper!"
   },
   {
-    question: "Why did the advisor bring a ladder to work?",
-    answer: "To help students climb the ladder of success!"
+    question: "Why did the melon jump into the lake?",
+    answer: "It wanted to be a water-melon!"
   },
   {
-    question: "Why did the advisor bring a mirror to work?",
-    answer: "To help students reflect on their goals!"
+    question: "What do you call a broken can opener?",
+    answer: "A can't opener!"
   },
   {
-    question: "Why did the advisor bring seeds to orientation?",
-    answer: "To plant the idea that education helps you grow!"
+    question: "Why did the tree go to the dentist?",
+    answer: "To get a root canal!"
   },
   {
-    question: "Why did the advisor carry a compass?",
-    answer: "To help students find their true north!"
+    question: "What do you call a sad cup of coffee?",
+    answer: "Depresso!"
   },
   {
-    question: "Why did the advisor carry a flashlight?",
-    answer: "To spotlight student potential!"
+    question: "Why did the book join the police?",
+    answer: "He wanted to go undercover!"
   },
   {
-    question: "Why did the advisor carry a pencil?",
-    answer: "To help students draft their futures!"
+    question: "What do you call a belt made of watches?",
+    answer: "A waist of time!"
   },
   {
-    question: "Why did the advisor wear a cape?",
-    answer: "They're super at helping students!"
+    question: "Why did the phone wear glasses?",
+    answer: "Because it lost all its contacts!"
   },
   {
-    question: "Why did the advisor win an award?",
-    answer: "They really raised the bar for student support!"
+    question: "What do you call a dinosaur that loves pancakes?",
+    answer: "A tri-syrup-tops!"
   },
   {
-    question: "Why did the transcript get a job as a comedian?",
-    answer: "It had a lot of class!"
+    question: "Why did the baker work so hard?",
+    answer: "He kneaded the dough!"
   },
   {
-    question: "Why do advisors make great comedians?",
-    answer: "They know how to deliver life-changing punchlines!"
+    question: "What do you call a pig that does karate?",
+    answer: "A pork chop!"
   },
   {
-    question: "Why do advisors make great DJs?",
-    answer: "They know how to drop knowledge!"
+    question: "Why did the painting go to jail?",
+    answer: "It was framed!"
   },
   {
-    question: "Why don't admissions advisors ever get angry?",
-    answer: "They practice acceptance daily!"
+    question: "What do you call a magical dog?",
+    answer: "A labracadabrador!"
   },
   {
-    question: "Why don't admissions advisors ever get lost?",
-    answer: "They're always giving directions to others!"
+    question: "Why did the ghost go to the party?",
+    answer: "For the boos!"
   },
   {
-    question: "Why don't admissions advisors use GPS?",
-    answer: "They already know all the paths to success!"
+    question: "What do you call a bear caught in the rain?",
+    answer: "A drizzly bear!"
   },
   {
-    question: "Why don't advisors tell scary stories?",
-    answer: "They're too busy creating happy endings!"
+    question: "Why did the rubber band go to the gym?",
+    answer: "To get stretched!"
   },
   {
-    question: "Why was the admissions advisor so good at gardening?",
-    answer: "They specialized in helping students plant their futures!"
+    question: "What do you call a sheep with no legs?",
+    answer: "A cloud!"
   },
   {
-    question: "Why was the advisor so good at social media?",
-    answer: "They were always helping students follow their dreams!"
+    question: "Why did the pencil go to the party?",
+    answer: "To draw a crowd!"
+  },
+  {
+    question: "What do you call a cow that plays an instrument?",
+    answer: "A moo-sician!"
+  },
+  {
+    question: "Why did the blanket go to the doctor?",
+    answer: "It had a cover-up!"
+  },
+  {
+    question: "What do you call a fish that needs help with his voice?",
+    answer: "Auto-tuna!"
+  },
+  {
+    question: "Why did the donut go to the dentist?",
+    answer: "To get a filling!"
+  },
+  {
+    question: "What do you call a train carrying bubblegum?",
+    answer: "A chew-chew train!"
+  },
+  {
+    question: "Why did the computer go to therapy?",
+    answer: "It had too many bytes!"
+  },
+  {
+    question: "What do you call a sleeping pizza?",
+    answer: "A PIZZZZa!"
+  },
+  {
+    question: "Why did the baseball player get arrested?",
+    answer: "For stealing second base!"
+  },
+  {
+    question: "What do you call a sad strawberry?",
+    answer: "A blueberry!"
+  },
+  {
+    question: "Why did the light bulb fail his test?",
+    answer: "He wasn't too bright!"
+  },
+  {
+    question: "What do you call a nervous javelin thrower?",
+    answer: "Shakespeare!"
+  },
+  {
+    question: "Why did the scissors go to school?",
+    answer: "To get sharp!"
+  },
+  {
+    question: "What do you call a boat that's afraid of the water?",
+    answer: "A nervous wreck!"
+  },
+  {
+    question: "Why did the robot go on a diet?",
+    answer: "He had a byte problem!"
+  },
+  {
+    question: "What do you call a lazy bull?",
+    answer: "A bulldozer!"
+  },
+  {
+    question: "Why did the grape stop in the middle of the road?",
+    answer: "Because it ran out of juice!"
+  },
+  {
+    question: "What do you call a duck that gets all A's?",
+    answer: "A wise quacker!"
+  },
+  {
+    question: "Why did the mirror go to school?",
+    answer: "To get a reflection!"
+  },
+  {
+    question: "What do you call a frozen dog?",
+    answer: "A pupsicle!"
+  },
+  {
+    question: "Why did the paper go to the gym?",
+    answer: "To get ripped!"
+  },
+  {
+    question: "What do you call a happy mushroom?",
+    answer: "A fun-gi!"
   }
 ];
 
@@ -437,6 +521,7 @@ export default function Home() {
           { category: 'Coaching Notes', content: data.coachingNotes },
           { category: 'Follow-up Email', content: data.emailBlast }
         ].filter(item => item.content); // Remove any undefined entries
+
 
         console.log('Converted results array:', resultsArray);
         setResults(resultsArray);

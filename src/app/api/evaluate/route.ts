@@ -213,6 +213,7 @@ export async function POST(request: Request) {
       '06_weekly growth plan prompt.txt',
       '07_coaching notes prompt.txt',
       '08_email_blast_prompt.txt',  // Email blast prompt
+      '10_faq_generator_prompt.txt',  // FAQ generator prompt
     ];
 
     const prompts = [];
@@ -244,7 +245,8 @@ export async function POST(request: Request) {
     }
 
     // Define which prompts use Haiku (faster/cheaper) vs Sonnet
-    const haikuIndices = [0, 4]; // title, application invitation
+    const haikuIndices = [0, 4, 8]; // title, application invitation, FAQ generator
+    // Email (index 7) will use Sonnet for better quality
 
     // Create all evaluation functions (not executing yet)
     const evaluationFunctions = prompts.map((prompt, index) => {
@@ -255,21 +257,33 @@ export async function POST(request: Request) {
           : 'claude-3-5-sonnet-20241022';
         
         // Use appropriate max_tokens based on model
-        const maxTokens = isHaiku ? 4096 : 8192;
+        // Weekly Growth Plan needs more tokens for detailed strategies
+        const isGrowthPlan = index === 5; // Index 5 is '06_weekly growth plan prompt.txt'
+        // Claude 3.5 Sonnet default limit is 4096, beta limit is 8192
+        const maxTokens = isHaiku ? 4096 : 4096;
         
         // Wrap the API call with retry logic
-        return retryWithBackoff(() => 
-          anthropic.messages.create({
+        return retryWithBackoff(() => {
+          const messageParams = {
             model,
-            max_tokens: maxTokens,
+            max_tokens: isGrowthPlan && !isHaiku ? 8192 : maxTokens,
             messages: [
               {
                 role: 'user',
                 content: `${prompt}\n\nTranscript:\n${transcript}`
               }
             ]
-          })
-        );
+          };
+          
+          // Add beta header for Growth Plan to get 8192 token output
+          const options = isGrowthPlan && !isHaiku ? {
+            headers: {
+              'anthropic-beta': 'max-tokens-3-5-sonnet-2024-07-15'
+            }
+          } : undefined;
+          
+          return anthropic.messages.create(messageParams, options);
+        });
       };
     });
 
@@ -291,6 +305,7 @@ export async function POST(request: Request) {
       growthPlan: '',
       coachingNotes: '',
       emailBlast: '',
+      faqInfo: null as any,
     };
 
     // Map responses to correct keys - REMOVED OVERVIEW
@@ -302,7 +317,8 @@ export async function POST(request: Request) {
       'applicationInvitation',
       'growthPlan',
       'coachingNotes',
-      'emailBlast'
+      'emailBlast',
+      'faqInfo'
     ];
 
     responses.forEach((response, index) => {
@@ -320,13 +336,28 @@ export async function POST(request: Request) {
           }
         }
         
-        results[key as keyof typeof results] = cleanedText;
+        // Special handling for FAQ info - parse JSON
+        if (key === 'faqInfo') {
+          try {
+            results[key as keyof typeof results] = JSON.parse(cleanedText);
+          } catch (error) {
+            console.error('Error parsing FAQ info:', error);
+            results[key as keyof typeof results] = {
+              studentName: 'Future Salem Student',
+              programInterest: 'General Studies',
+              topicsDiscussed: []
+            };
+          }
+        } else {
+          results[key as keyof typeof results] = cleanedText;
+        }
       } else {
         // No text content in response
         console.warn(`No text content in response for ${key}`);
         results[key as keyof typeof results] = `Error: No response generated for ${key}`;
       }
     });
+
 
     return NextResponse.json(results);
 

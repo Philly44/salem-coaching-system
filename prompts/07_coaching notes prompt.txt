@@ -1,8 +1,15 @@
-Write encouraging, advancement-focused coaching notes based on the advisor's current performance level:
+Write encouraging, advancement-focused coaching notes in EXACTLY 2 paragraphs. Each paragraph must be no more than 4 sentences.
 
 ## Coaching Notes
 
-[Start with advisor's natural strengths and positive qualities appropriate for their current performance level. Acknowledge what they're building upon. Then provide encouraging guidance about advancing to the next performance level using language like "progress," "advance," "build toward," and "develop." End with reinforcement about the value of motivational discovery at their target level.]
+**Format Requirements:**
+- Exactly 2 paragraphs
+- Maximum 4 sentences per paragraph
+- No bullet points or lists
+
+**Paragraph 1:** Start with advisor's natural strengths and positive qualities appropriate for their current performance level. Acknowledge what they're building upon. Focus on their current successes and foundation.
+
+**Paragraph 2:** Provide encouraging guidance about advancing to the next performance level using language like "progress," "advance," "build toward," and "develop." End with reinforcement about the value of motivational discovery at their target level.
 
 **For advisors at "Does Not Meet Expected Results":** Focus on foundational skills and building confidence
 **For advisors at "Developing":** Emphasize progression to effective questioning techniques

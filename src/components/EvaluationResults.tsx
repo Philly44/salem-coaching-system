@@ -44,6 +44,18 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
 
     let cleanedContent = content.trim();
 
+    // Remove common AI preambles first (applies to all categories)
+    const aiPreamblePatterns = [
+      /^Here are \d+ paragraphs? of[^:]+:\s*\n*/i,
+      /^Here (?:are|is)[^:]+:\s*\n*/i,
+      /^I've (?:created|generated|prepared)[^:]+:\s*\n*/i,
+      /^Based on[^,]+, here[^:]+:\s*\n*/i,
+    ];
+    
+    for (const pattern of aiPreamblePatterns) {
+      cleanedContent = cleanedContent.replace(pattern, '');
+    }
+
     // Check each pattern and remove if found at the start
     for (const pattern of patterns) {
       if (pattern.test(cleanedContent)) {
@@ -57,8 +69,9 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
       // Remove standalone "Coaching Notes" on its own line anywhere in the content
       cleanedContent = cleanedContent.replace(/^Coaching Notes\s*$/gm, '');
 
-      // Remove the introductory line pattern
+      // Remove the introductory line patterns
       cleanedContent = cleanedContent.replace(/^Here are encouraging[^:]+:\s*\n*/i, '');
+      cleanedContent = cleanedContent.replace(/^Here are \d+ paragraphs? of encouraging[^:]+:\s*\n*/i, '');
 
       // Also remove with markdown formatting
       const middlePatterns = [
@@ -138,20 +151,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
 
           if (strategyMatch && strategyMatch.index !== undefined) {
             // Start from Strategy #1
-            const strategyContent = cleaned.substring(strategyMatch.index);
-
-            // Then cut off at end markers (but not "Based on" since that's at the beginning)
-            const endMarkers = ['This plan was generated because:', 'Rationale:', 'Let me', 'The focus', 'In summary'];
-            let cutoffIndex = strategyContent.length;
-
-            for (const marker of endMarkers) {
-              const markerIndex = strategyContent.indexOf(marker);
-              if (markerIndex > 0 && markerIndex < cutoffIndex) {
-                cutoffIndex = markerIndex;
-              }
-            }
-
-            cleanedContent = strategyContent.substring(0, cutoffIndex).trim();        
+            cleanedContent = cleaned.substring(strategyMatch.index);
           } else {
             // Fallback if no Strategy #1 found - just show cleaned content
             cleanedContent = cleaned;
@@ -173,21 +173,146 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
         } else {
           cleanedContent = removeDuplicateHeading(result.content, result.category);
         }
+        
+        
+        // Special handling for Weekly Growth Plan - render as two separate cards
+        if (isWeeklyGrowthPlan) {
+          // Use the original content to ensure nothing is lost
+          const fullContent = result.content;
+          
+          // Find both strategies in the original content with improved regex
+          // Look for Strategy 2 first to find the split point
+          const strategy2StartMatch = fullContent.match(/Strategy\s*#?\s*2:/i);
+          let strategy1Content = '';
+          let strategy2Content = '';
+          
+          if (strategy2StartMatch && strategy2StartMatch.index) {
+            // Extract Strategy 1 (everything before Strategy 2)
+            const strategy1Part = fullContent.substring(0, strategy2StartMatch.index);
+            const strategy1Match = strategy1Part.match(/Strategy\s*#?\s*1:\s*([\s\S]*)/i);
+            if (strategy1Match && strategy1Match[1]) {
+              strategy1Content = strategy1Match[1].trim();
+            }
+            
+            // Extract Strategy 2 (everything after Strategy 2:)
+            const strategy2Part = fullContent.substring(strategy2StartMatch.index);
+            const strategy2Match = strategy2Part.match(/Strategy\s*#?\s*2:\s*([\s\S]*)/i);
+            if (strategy2Match && strategy2Match[1]) {
+              strategy2Content = strategy2Match[1].trim();
+            }
+          } else {
+            // Fallback: try original regex approach
+            const strategy1Match = fullContent.match(/Strategy\s*#?\s*1:\s*([\s\S]*?)(?=Strategy\s*#?\s*2:|$)/i);
+            const strategy2Match = fullContent.match(/Strategy\s*#?\s*2:\s*([\s\S]*?)$/i);
+            
+            if (strategy1Match && strategy1Match[1]) {
+              strategy1Content = strategy1Match[1].trim();
+            }
+            
+            if (strategy2Match && strategy2Match[1]) {
+              strategy2Content = strategy2Match[1].trim();
+            }
+          }
+          
+          // If the regex approach didn't work, fall back to the split method
+          if (!strategy1Content && !strategy2Content) {
+            const strategies = cleanedContent.split(/(?=Strategy\s*#?\s*2:)/i);
+            
+            if (strategies.length >= 1) {
+              const strategy1Full = strategies[0];
+              strategy1Content = strategy1Full.replace(/^Strategy\s*#?\s*1:\s*/i, '').trim();
+            }
+            
+            if (strategies.length >= 2) {
+              const strategy2Full = strategies[1];
+              strategy2Content = strategy2Full.replace(/^Strategy\s*#?\s*2:\s*/i, '').trim();
+            }
+          }
+          
+          // Debug logging to identify truncation
+          console.log('Weekly Growth Plan - Full content length:', fullContent.length);
+          console.log('Strategy 1 length:', strategy1Content.length);
+          console.log('Strategy 2 length:', strategy2Content.length);
+          
+          // Clean up any trailing markdown artifacts
+          strategy1Content = strategy1Content.replace(/\*+\s*$/, '').trim();
+          strategy2Content = strategy2Content.replace(/\*+\s*$/, '').trim();
+          
+          // Check if content appears truncated
+          const lastChars = strategy2Content.slice(-50);
+          if (!lastChars.match(/[.!?]\s*$/)) {
+            console.warn('Strategy 2 may be truncated - does not end with punctuation:', lastChars);
+          }
+          
+          return (
+            <div key={index}>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{result.category}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {/* Strategy 1 Card */}
+                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Strategy #1</h3>
+                    <button
+                      onClick={() => copyToClipboard(`Strategy #1: ${strategy1Content}`, index * 2)}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100 flex-shrink-0"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === index * 2 ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="prose prose-gray max-w-none break-words">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {strategy1Content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+                
+                {/* Strategy 2 Card */}
+                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Strategy #2</h3>
+                    <button
+                      onClick={() => copyToClipboard(`Strategy #2: ${strategy2Content}`, index * 2 + 1)}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100 flex-shrink-0"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === index * 2 + 1 ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="prose prose-gray max-w-none break-words">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {strategy2Content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div key={index} className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-bold text-gray-900">{result.category}</h2> 
               <button
-                onClick={() => copyToClipboard(result.content, index)}
-                className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
-                title="Copy to clipboard"
-              >
-                {copiedIndex === index ? (
-                  <Check className="w-5 h-5 text-green-600" />
-                ) : (
-                  <Copy className="w-5 h-5" />
-                )}
-              </button>
+                  onClick={() => copyToClipboard(result.content, index)}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                  title="Copy to clipboard"
+                >
+                  {copiedIndex === index ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
             </div>
             <div className="prose prose-gray max-w-none">
               <ReactMarkdown
