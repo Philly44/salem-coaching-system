@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+// Try SendGrid first, fallback to SMTP
+import { sendEvaluationEmail as sendgridEmail } from '@/utils/sendgridEmailService';
+import { sendEvaluationEmail as smtpEmail } from '@/utils/emailService';
 
 // Helper function to remove AI preamble text
 function removePreamble(text: string): string {
@@ -358,6 +361,17 @@ export async function POST(request: Request) {
       }
     });
 
+    // Send email notification in the background (don't await to avoid delaying response)
+    // Try SendGrid first if configured, otherwise use SMTP
+    if (process.env.SENDGRID_API_KEY) {
+      sendgridEmail(results).catch(error => {
+        console.error('SendGrid email send failed:', error);
+      });
+    } else {
+      smtpEmail(results).catch(error => {
+        console.error('SMTP email send failed:', error);
+      });
+    }
 
     return NextResponse.json(results);
 
