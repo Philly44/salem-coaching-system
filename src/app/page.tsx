@@ -512,10 +512,67 @@ export default function Home() {
         
         const data = await response.json();
         
+        // Array of creative phrases for the impactful statement
+        const impactfulPhrases = [
+          "We Both Stopped and Said \"That Was Incredible\"",
+          "The Moment We Looked at Each Other Like \"Did You Hear That?\"",
+          "When We Were Both Blown Away by What You Said",
+          "That Part Where We Literally High-Fived About Your Response",
+          "The Moment We Both Knew You Absolutely Crushed It",
+          "When We Texted Each Other \"This Advisor Gets It!\"",
+          "That Exchange That Made Us So Proud of You",
+          "The Part Where We Were Like \"Yes! This Is Why They're Amazing\"",
+          "When We Both Agreed This Was Pure Gold",
+          "The Moment We Wanted to Call You Right Away to Say \"Wow\"",
+          "That Time We Both Said \"Now THAT'S How It's Done\"",
+          "When We Couldn't Stop Talking About How Good This Was",
+          "The Part That Made Us Remember Why We Love What You Do",
+          "That Beautiful Moment When We Were Just So Impressed",
+          "When We Both Felt Lucky to Have You on the Team",
+          "The Exchange That Had Us Taking Notes for Others",
+          "That Part Where We Were Like \"Everyone Needs to Hear This\"",
+          "When We Both Agreed You Just Set the Bar Higher",
+          "The Moment We Knew We Had to Share This With Everyone",
+          "That Time You Made Us Both Believers in What's Possible",
+          "When We Replayed This Part Three Times Because It Was So Good",
+          "The Moment We Both Said \"This Is Exactly What We Train For\"",
+          "That Part Where We Wanted to Use This as a Training Example",
+          "When We Both Felt That Electric Moment of Connection",
+          "The Exchange Where We Saw Your Natural Talent Shine Through",
+          "That Time We Were Like \"Did They Really Just Say That? Amazing!\"",
+          "When We Both Recognized This as a Masterclass Moment",
+          "The Part That Made Us Want to Celebrate Your Win",
+          "That Moment We Knew the Student's Life Just Changed",
+          "When We Both Saw You Turn Everything Around",
+          "The Part Where We Were Genuinely Moved by Your Approach",
+          "That Exchange That Reminded Us Why This Work Matters",
+          "When We Both Said \"That's the Kind of Advisor We Need\"",
+          "The Moment We Realized You Just Taught Us Something",
+          "That Part Where Your Authenticity Just Radiated Through",
+          "When We Were Like \"This Is Why They're One of Our Best\"",
+          "The Exchange That Made Us Want to Clone You",
+          "That Time You Made Complex Things Sound So Simple",
+          "When We Both Noticed How Naturally You Built Trust",
+          "The Part Where We Saw Years of Experience Pay Off",
+          "That Moment When Everything Just Clicked Perfectly",
+          "When We Both Felt the Energy Shift in the Best Way",
+          "The Exchange Where You Turned Nervous Into Excited",
+          "That Part That Had Us Nodding Along With You",
+          "When We Recognized This as Your Signature Move",
+          "The Moment We Knew This Student Was in Perfect Hands",
+          "That Time You Made Us Remember Our Own Why",
+          "When We Both Said \"That Right There Is the Magic\"",
+          "The Part Where Your Confidence Became Their Confidence",
+          "That Beautiful Exchange Where Everything Just Flowed"
+        ];
+        
+        // Select a random phrase for this evaluation
+        const randomPhrase = impactfulPhrases[Math.floor(Math.random() * impactfulPhrases.length)];
+        
         // Convert to streaming-like updates
         const resultsArray = [
           { category: 'Title', content: data.title },
-          { category: 'Most Impactful Statement', content: data.impactfulStatement },
+          { category: randomPhrase, content: data.impactfulStatement },
           { category: 'Interview Scorecard', content: data.scorecard },
           { category: 'Talk/Listen Ratio Analysis', content: data.talkListenRatio },
           { category: 'Application Invitation Assessment', content: data.applicationInvitation },

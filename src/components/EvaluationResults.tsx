@@ -298,14 +298,36 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           );
         }
         
+        // Check if this is the impactful statement (has quotes or specific phrases)
+        const isImpactfulStatement = result.category.includes('"') || 
+          result.category.includes('That ') || 
+          result.category.includes('When ') ||
+          result.category.includes('The Moment') ||
+          result.category.includes('The Exchange') ||
+          result.category.includes('The Part');
+        
         return (
           <div 
             key={index} 
-            className="bg-white rounded-xl shadow-lg p-6 animate-fade-in"
-            style={{ animationDelay: `${index * 100}ms` }}
+            className={`rounded-xl shadow-lg p-6 animate-fade-in ${
+              isImpactfulStatement 
+                ? 'bg-gradient-to-br from-amber-50 via-white to-amber-50 shadow-amber-100/50 hover:shadow-amber-200/50 transition-all duration-300 golden-shimmer' 
+                : 'bg-white'
+            }`}
+            style={{ 
+              animationDelay: `${index * 100}ms`,
+              ...(isImpactfulStatement && {
+                boxShadow: '0 4px 20px 0 rgba(251, 191, 36, 0.1), 0 1px 3px 0 rgba(251, 191, 36, 0.08)'
+              })
+            }}
           >
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">{result.category}</h2> 
+              <h2 className={`font-bold text-gray-900 ${isImpactfulStatement ? 'text-2xl md:text-3xl' : 'text-2xl'}`}>
+                {isImpactfulStatement && (
+                  <span className="inline-block mr-2 text-amber-500">✨</span>
+                )}
+                {result.category}
+              </h2> 
               <button
                   onClick={() => copyToClipboard(result.content, index)}
                   className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"

@@ -139,6 +139,39 @@ main {
   }
 }
 
+/* Golden shimmer for special cards */
+@keyframes golden-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.golden-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.golden-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(251, 191, 36, 0.07) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: golden-shimmer 3s infinite;
+  pointer-events: none;
+}
+
 /* Progressive reveal animation */
 @keyframes slideInFade {
   0% {
