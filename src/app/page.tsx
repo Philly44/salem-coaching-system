@@ -690,10 +690,6 @@ export default function Home() {
                   }}
                 ></div>
               </div>
-              
-              <p className="mt-2 text-sm text-gray-600">
-                {Math.round(progress)}% Complete - {results.length} of 8 evaluations
-              </p>
             </div>
           </div>
         )}
