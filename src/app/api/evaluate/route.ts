@@ -6,6 +6,7 @@ import { join } from 'path';
 // Try SendGrid first, fallback to SMTP
 import { sendEvaluationEmail as sendgridEmail } from '@/utils/sendgridEmailService';
 import { sendEvaluationEmail as smtpEmail } from '@/utils/emailService';
+import { EvaluationResults, APIError, AnthropicResponse } from '@/types/evaluation';
 
 // Cache for prompt files - loaded once on first request
 let promptCache: string[] | null = null;
@@ -133,7 +134,7 @@ async function retryWithBackoff<T>(
       return result;
     } catch (error) {
       // Type guard to check if error has the properties we need
-      const apiError = error as { status?: number; headers?: { get?: (key: string) => string } };
+      const apiError = error as APIError;
       
       // Check if it's a 529 (overloaded) or 429 (rate limit) error
       if ((apiError?.status === 529 || apiError?.status === 429) && attempt < maxRetries - 1) {
@@ -335,7 +336,7 @@ export async function POST(request: Request) {
     console.log(`All evaluations completed in ${endTime - startTime}ms`);
 
     // Extract content from responses - REMOVED OVERVIEW
-    const results = {
+    const results: EvaluationResults = {
       title: '',
       impactfulStatement: '',
       scorecard: '',

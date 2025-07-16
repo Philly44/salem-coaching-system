@@ -1,6 +1,8 @@
 import sgMail from '@sendgrid/mail';
+import { formatEvaluationEmail, createPlainTextEmail } from './formatEmail';
+import { EvaluationResults, SendGridMessage } from '@/types/evaluation';
 
-export async function sendEvaluationEmail(evaluationResults: any): Promise<void> {
+export async function sendEvaluationEmail(evaluationResults: EvaluationResults): Promise<void> {
   try {
     // Check if email is enabled
     if (process.env.EMAIL_ENABLED !== 'true') {
@@ -19,19 +21,31 @@ export async function sendEvaluationEmail(evaluationResults: any): Promise<void>
 
     // Format evaluation results into HTML
     const html = formatEvaluationEmail(evaluationResults);
+    console.log('Email HTML length:', html.length, 'characters');
+
+    // Create plain text version
+    const text = createPlainTextEmail(evaluationResults);
 
     // Email configuration
-    const msg = {
+    const msg: SendGridMessage = {
       to: 'andrew.subryan@salemu.edu',
       cc: 'a_subryan@hotmail.com',
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@salemu.edu', // Must be verified in SendGrid
+      from: {
+        email: process.env.SENDGRID_FROM_EMAIL || 'andrew.subryan@salemu.edu',
+        name: 'Salem Coaching System'
+      },
       replyTo: 'andrew.subryan@salemu.edu',
       subject: `Coaching Evaluation Report - ${new Date().toLocaleDateString()}`,
+      text: text,
       html: html,
     };
 
     // Send email
-    await sgMail.send(msg);
+    console.log('Attempting to send email to:', msg.to);
+    console.log('From:', msg.from);
+    const response = await sgMail.send(msg);
+    console.log('SendGrid response:', response[0].statusCode);
+    console.log('Email ID:', response[0].headers['x-message-id']);
     console.log('Evaluation email sent successfully via SendGrid');
   } catch (error: any) {
     // Log error but don't throw - we don't want to affect the user experience
@@ -40,113 +54,4 @@ export async function sendEvaluationEmail(evaluationResults: any): Promise<void>
       console.error('SendGrid error details:', error.response.body);
     }
   }
-}
-
-function formatEvaluationEmail(results: any): string {
-  const {
-    title,
-    impactfulStatement,
-    scorecard,
-    talkListenRatio,
-    applicationInvitation,
-    growthPlan,
-    coachingNotes,
-    emailBlast,
-  } = results;
-
-  // Simple text formatting - convert markdown basics to plain HTML
-  const formatText = (text: string) => {
-    return text
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^[•\-\*]\s+(.+)$/gm, '• $1')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>');
-  };
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-          font-size: 16px;
-          line-height: 1.6;
-          color: #333;
-          max-width: 600px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-        h1 {
-          font-size: 24px;
-          font-weight: bold;
-          margin: 0 0 20px 0;
-          text-transform: uppercase;
-        }
-        h2 {
-          font-size: 18px;
-          font-weight: bold;
-          margin: 30px 0 10px 0;
-          text-transform: uppercase;
-        }
-        p {
-          margin: 0 0 15px 0;
-        }
-        strong {
-          font-weight: 600;
-        }
-        .timestamp {
-          color: #666;
-          font-size: 14px;
-          margin-bottom: 30px;
-        }
-        .footer {
-          margin-top: 50px;
-          padding-top: 20px;
-          border-top: 1px solid #ddd;
-          font-size: 14px;
-          color: #666;
-        }
-        pre {
-          font-family: inherit;
-          white-space: pre-wrap;
-          margin: 0;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>Coaching Evaluation Results</h1>
-      <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
-
-      <h2>Title</h2>
-      <p>${title}</p>
-
-      <h2>Most Impactful Statement</h2>
-      <p>${formatText(impactfulStatement)}</p>
-
-      <h2>Interview Scorecard</h2>
-      <p>${formatText(scorecard)}</p>
-
-      <h2>Talk/Listen Ratio Analysis</h2>
-      <p>${formatText(talkListenRatio)}</p>
-
-      <h2>Application Invitation Assessment</h2>
-      <p>${formatText(applicationInvitation)}</p>
-
-      <h2>Weekly Growth Plan</h2>
-      <p>${formatText(growthPlan)}</p>
-
-      <h2>Coaching Notes</h2>
-      <p>${formatText(coachingNotes)}</p>
-
-      <h2>Follow-up Email Template</h2>
-      <pre>${emailBlast}</pre>
-
-      <div class="footer">
-        Salem University Coaching Evaluation System<br>
-        For questions, please contact andrew.subryan@salemu.edu
-      </div>
-    </body>
-    </html>
-  `;
 }
