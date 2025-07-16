@@ -17,98 +17,106 @@ export function formatEvaluationEmail(results: EvaluationResults): string {
     emailBlast,
   } = results;
 
-  // Simple text formatting - convert markdown basics to plain HTML
-  const formatText = (text: string) => {
-    return text
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^[•\-\*]\s+(.+)$/gm, '• $1')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>');
-  };
+  // Get current date and time
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  });
+  const timeStr = now.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit' 
+  });
 
+  // Extract advisor/student info from title if available
+  // Default values if not extracted from transcript
+  const advisor = "Coaching System";
+  const student = title || "Student";
+  const program = "General Studies";
+  const callLength = "N/A";
+  const evaluatedOn = dateStr;
+
+  // Simple HTML email with plain text styling
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <style>
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-          font-size: 16px;
+          font-family: 'Courier New', monospace;
+          font-size: 14px;
           line-height: 1.6;
-          color: #333;
-          max-width: 600px;
+          color: #000;
+          max-width: 800px;
           margin: 0 auto;
           padding: 20px;
+          background-color: #fff;
         }
         h1 {
-          font-size: 24px;
-          font-weight: bold;
-          margin: 0 0 20px 0;
-          text-transform: uppercase;
-        }
-        h2 {
           font-size: 18px;
           font-weight: bold;
-          margin: 30px 0 10px 0;
-          text-transform: uppercase;
+          margin: 0 0 10px 0;
+        }
+        h2 {
+          font-size: 16px;
+          font-weight: bold;
+          margin: 20px 0 10px 0;
         }
         p {
-          margin: 0 0 15px 0;
+          margin: 0 0 10px 0;
         }
         strong {
-          font-weight: 600;
-        }
-        .timestamp {
-          color: #666;
-          font-size: 14px;
-          margin-bottom: 30px;
-        }
-        .footer {
-          margin-top: 50px;
-          padding-top: 20px;
-          border-top: 1px solid #ddd;
-          font-size: 14px;
-          color: #666;
+          font-weight: bold;
         }
         pre {
-          font-family: inherit;
+          font-family: 'Courier New', monospace;
           white-space: pre-wrap;
           margin: 0;
+        }
+        .metadata {
+          margin-bottom: 20px;
+          font-size: 13px;
         }
       </style>
     </head>
     <body>
-      <h1>Coaching Evaluation Results</h1>
-      <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
+      <pre>
+# COACHING EVALUATION RESULTS
 
-      <h2>Title</h2>
-      <p>${title}</p>
+Generated: ${dateStr}, ${timeStr}
 
-      <h2>Most Impactful Statement</h2>
-      <p>${formatText(impactfulStatement)}</p>
+Advisor: ${advisor} | Student: ${student} | Program: ${program} | Call Length: ${callLength} | Evaluated On: ${evaluatedOn}
 
-      <h2>Interview Scorecard</h2>
-      <p>${formatText(scorecard)}</p>
+## MOST IMPACTFUL STATEMENT
 
-      <h2>Talk/Listen Ratio Analysis</h2>
-      <p>${formatText(talkListenRatio)}</p>
+${impactfulStatement}
 
-      <h2>Application Invitation Assessment</h2>
-      <p>${formatText(applicationInvitation)}</p>
+## INTERVIEW SCORECARD
 
-      <h2>Weekly Growth Plan</h2>
-      <p>${formatText(growthPlan)}</p>
+${scorecard}
 
-      <h2>Coaching Notes</h2>
-      <p>${formatText(coachingNotes)}</p>
+## TALK/LISTEN RATIO
 
-      <h2>Follow-up Email Template</h2>
-      <pre>${emailBlast}</pre>
+${talkListenRatio}
 
-      <div class="footer">
-        Salem University Coaching Evaluation System<br>
-        For questions, please contact andrew.subryan@salemu.edu
-      </div>
+## APPLICATION INVITATION ASSESSMENT
+
+${applicationInvitation}
+
+## WEEKLY GROWTH PLAN
+
+${growthPlan}
+
+## COACHING NOTES
+
+${coachingNotes}
+
+## FOLLOW-UP EMAIL TEMPLATE
+
+${emailBlast}
+      </pre>
     </body>
     </html>
   `;
@@ -118,8 +126,60 @@ export function formatEvaluationEmail(results: EvaluationResults): string {
  * Create plain text version of evaluation results
  */
 export function createPlainTextEmail(results: EvaluationResults): string {
-  return results.title + '\n\n' +
-    Object.entries(results).map(([key, value]) => 
-      `${key.toUpperCase()}\n${value}\n\n`
-    ).join('');
+  const {
+    title,
+    impactfulStatement,
+    scorecard,
+    talkListenRatio,
+    applicationInvitation,
+    growthPlan,
+    coachingNotes,
+    emailBlast,
+  } = results;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  });
+  const timeStr = now.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit' 
+  });
+
+  return `# COACHING EVALUATION RESULTS
+
+Generated: ${dateStr}, ${timeStr}
+
+Advisor: Coaching System | Student: ${title || "Student"} | Program: General Studies | Call Length: N/A | Evaluated On: ${dateStr}
+
+## MOST IMPACTFUL STATEMENT
+
+${impactfulStatement}
+
+## INTERVIEW SCORECARD
+
+${scorecard}
+
+## TALK/LISTEN RATIO
+
+${talkListenRatio}
+
+## APPLICATION INVITATION ASSESSMENT
+
+${applicationInvitation}
+
+## WEEKLY GROWTH PLAN
+
+${growthPlan}
+
+## COACHING NOTES
+
+${coachingNotes}
+
+## FOLLOW-UP EMAIL TEMPLATE
+
+${emailBlast}`;
 }
