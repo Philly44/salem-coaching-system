@@ -314,7 +314,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             key={index} 
             className={`rounded-xl shadow-lg p-6 animate-fade-in ${
               isImpactfulStatement 
-                ? 'bg-gradient-to-br from-amber-50 via-white to-amber-50 shadow-amber-100/50 hover:shadow-amber-200/50 transition-all duration-300' 
+                ? 'bg-amber-100 shadow-amber-200/30 hover:shadow-amber-200/50 transition-all duration-300' 
                 : isFollowUpEmail
                 ? 'bg-green-100 shadow-green-200/30'
                 : 'bg-white'
@@ -322,7 +322,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             style={{ 
               animationDelay: `${index * 100}ms`,
               ...(isImpactfulStatement && {
-                boxShadow: '0 4px 20px 0 rgba(251, 191, 36, 0.1), 0 1px 3px 0 rgba(251, 191, 36, 0.08)'
+                boxShadow: '0 2px 10px 0 rgba(251, 191, 36, 0.15)'
               }),
               ...(isFollowUpEmail && {
                 boxShadow: '0 2px 10px 0 rgba(34, 197, 94, 0.15)'
