@@ -417,6 +417,7 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [currentJoke, setCurrentJoke] = useState<{question: string, answer: string} | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [showJokeQuestion, setShowJokeQuestion] = useState(false);
 
   useEffect(() => {
     console.log('Component mounted');
@@ -428,11 +429,16 @@ export default function Home() {
       const randomJoke = JOKES[Math.floor(Math.random() * JOKES.length)];
       setCurrentJoke(randomJoke);
       setShowAnswer(false);
+      setShowJokeQuestion(false);
       
       const interval = setInterval(() => {
         setProgress(prev => {
-          // Show answer at 50%
-          if (prev >= 50) {
+          // Show joke question at 25%
+          if (prev >= 25 && !showJokeQuestion) {
+            setShowJokeQuestion(true);
+          }
+          // Show answer at 75%
+          if (prev >= 75) {
             setShowAnswer(true);
           }
           
@@ -457,6 +463,7 @@ export default function Home() {
       setProgress(0);
       setCurrentJoke(null);
       setShowAnswer(false);
+      setShowJokeQuestion(false);
     }
   }, [loading]);
 
@@ -590,12 +597,14 @@ export default function Home() {
             </button>
 
             {loading && (
-              <div className="mt-6">
+              <div className="mt-3">
                 {currentJoke && (
-                  <div className="mb-4 text-center">
-                    <p className="text-lg font-semibold text-gray-800 mb-2">
-                      {currentJoke.question}
-                    </p>
+                  <div className="text-center min-h-[60px]">
+                    {showJokeQuestion && (
+                      <p className="text-lg font-semibold text-gray-800 mb-1 animate-fade-in">
+                        {currentJoke.question}
+                      </p>
+                    )}
                     {showAnswer && (
                       <p className="text-lg text-green-600 animate-fade-in">
                         {currentJoke.answer}
@@ -629,6 +638,8 @@ export default function Home() {
                 setTranscript('');
                 setError('');
                 setProgress(0);
+                setShowAnswer(false);
+                setShowJokeQuestion(false);
               }}
               className="mb-6 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors"
             >

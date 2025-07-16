@@ -97,10 +97,6 @@ ${impactfulStatement}
 
 ${scorecard}
 
-## TALK/LISTEN RATIO
-
-${talkListenRatio}
-
 ## APPLICATION INVITATION ASSESSMENT
 
 ${applicationInvitation}
@@ -162,10 +158,6 @@ ${impactfulStatement}
 ## INTERVIEW SCORECARD
 
 ${scorecard}
-
-## TALK/LISTEN RATIO
-
-${talkListenRatio}
 
 ## APPLICATION INVITATION ASSESSMENT
 
