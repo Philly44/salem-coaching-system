@@ -249,7 +249,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">{result.category}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 {/* Strategy 1 Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full">
+                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Strategy #1</h3>
                     <button
@@ -272,7 +272,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
                 </div>
                 
                 {/* Strategy 2 Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full">
+                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full animate-fade-in" style={{ animationDelay: `${index * 100 + 150}ms` }}>
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Strategy #2</h3>
                     <button
@@ -301,7 +301,8 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
         return (
           <div 
             key={index} 
-            className="bg-white rounded-xl shadow-lg p-6"
+            className="bg-white rounded-xl shadow-lg p-6 animate-fade-in"
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-bold text-gray-900">{result.category}</h2> 
