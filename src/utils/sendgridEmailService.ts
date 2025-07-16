@@ -52,7 +52,6 @@ function formatEvaluationEmail(results: any): string {
     growthPlan,
     coachingNotes,
     emailBlast,
-    faqInfo,
   } = results;
 
   // Convert markdown to HTML (basic conversion)
@@ -163,14 +162,6 @@ ${emailBlast}
         </pre>
       </div>
 
-      ${faqInfo ? `
-      <div class="section">
-        <h2>FAQ Information</h2>
-        <p><strong>Student Name:</strong> ${faqInfo.studentName}</p>
-        <p><strong>Program Interest:</strong> ${faqInfo.programInterest}</p>
-        <p><strong>Topics Discussed:</strong> ${faqInfo.topicsDiscussed?.join(', ') || 'N/A'}</p>
-      </div>
-      ` : ''}
 
       <hr style="margin-top: 40px; border: none; border-top: 1px solid #ddd;">
       <p style="color: #6b7280; font-size: 12px; text-align: center;">

@@ -7,6 +7,9 @@ import { join } from 'path';
 import { sendEvaluationEmail as sendgridEmail } from '@/utils/sendgridEmailService';
 import { sendEvaluationEmail as smtpEmail } from '@/utils/emailService';
 
+// Cache for prompt files - loaded once on first request
+let promptCache: string[] | null = null;
+
 // Helper function to remove AI preamble text
 function removePreamble(text: string): string {
   // Common preamble patterns to remove
@@ -118,25 +121,31 @@ function removePreamble(text: string): string {
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 5,
-  baseDelay: number = 2000
+  baseDelay: number = 1000,
+  promptIndex?: number
 ): Promise<T> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      return await fn();
+      const result = await fn();
+      if (attempt > 0) {
+        console.log(`Prompt ${promptIndex}: succeeded after ${attempt} retries`);
+      }
+      return result;
     } catch (error) {
       // Type guard to check if error has the properties we need
       const apiError = error as { status?: number; headers?: { get?: (key: string) => string } };
       
       // Check if it's a 529 (overloaded) or 429 (rate limit) error
       if ((apiError?.status === 529 || apiError?.status === 429) && attempt < maxRetries - 1) {
-        // For rate limit errors, use the retry-after header if available
-        let delay = baseDelay * Math.pow(2, attempt);
+        // Use shorter delays for parallel requests
+        let delay = baseDelay + (attempt * 500); // Linear backoff instead of exponential
         if (apiError?.status === 429 && apiError?.headers?.get) {
           const retryAfter = apiError.headers.get('retry-after');
           if (retryAfter) {
-            delay = parseInt(retryAfter) * 1000 + 1000; // Add 1 second buffer
+            delay = parseInt(retryAfter) * 1000;
           }
         }
+        console.log(`Prompt ${promptIndex}: rate limited, retrying in ${delay}ms (attempt ${attempt + 1})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -146,25 +155,40 @@ async function retryWithBackoff<T>(
   throw new Error('Max retries reached');
 }
 
-// Helper function to process requests in batches
-async function processBatch<T>(
-  promises: (() => Promise<T>)[],
-  batchSize: number = 2
+// Helper function to process requests with staggered parallel execution
+async function processParallel<T>(
+  promises: (() => Promise<T>)[]
 ): Promise<T[]> {
-  const results: T[] = [];
+  console.log(`Starting ${promises.length} API calls with staggered execution`);
   
-  for (let i = 0; i < promises.length; i += batchSize) {
-    const batch = promises.slice(i, i + batchSize);
-    const batchResults = await Promise.all(batch.map(fn => fn()));
-    results.push(...batchResults);
-    
-    // Add a small delay between batches to avoid rate limits
-    if (i + batchSize < promises.length) {
-      await new Promise(resolve => setTimeout(resolve, 3000));
+  // Stagger the start of each request by 200ms to avoid rate limit bursts
+  const staggeredPromises = promises.map((fn, index) => {
+    return new Promise<T>((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          console.log(`Starting API call ${index}`);
+          const result = await fn();
+          console.log(`Completed API call ${index}`);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      }, index * 200); // 200ms delay between each start
+    });
+  });
+  
+  // Process all staggered requests
+  const results = await Promise.allSettled(staggeredPromises);
+  
+  // Extract successful results and handle failures
+  return results.map((result, index) => {
+    if (result.status === 'fulfilled') {
+      return result.value;
+    } else {
+      console.error(`Request ${index} failed:`, result.reason);
+      throw result.reason;
     }
-  }
-  
-  return results;
+  });
 }
 
 export async function POST(request: Request) {
@@ -206,49 +230,60 @@ export async function POST(request: Request) {
       apiKey: API_KEY,
     });
 
-    // Load all prompts - REMOVED INTERVIEW OVERVIEW PROMPT
-    const promptFiles = [
-      '01_title prompt.txt',
-      '02_most impactful statement prompt.txt',
-      '04_interview scorecard prompt.txt',
-      '09_talk time.txt',
-      '05_application invitation assessment prompt.txt',
-      '06_weekly growth plan prompt.txt',
-      '07_coaching notes prompt.txt',
-      '08_email_blast_prompt.txt',  // Email blast prompt
-      '10_faq_generator_prompt.txt',  // FAQ generator prompt
-    ];
+    // Load prompts from cache or disk
+    let prompts: string[];
+    
+    if (promptCache) {
+      // Use cached prompts for faster response
+      prompts = promptCache;
+    } else {
+      // First time - load and cache prompts
+      const promptFiles = [
+        '01_title prompt.txt',
+        '02_most impactful statement prompt.txt',
+        '04_interview scorecard prompt.txt',
+        '09_talk time.txt',
+        '05_application invitation assessment prompt.txt',
+        '06_weekly growth plan prompt.txt',
+        '07_coaching notes prompt.txt',
+        '08_email_blast_prompt.txt',  // Email blast prompt
+      ];
 
-    const prompts = [];
-    for (let i = 0; i < promptFiles.length; i++) {
-      const file = promptFiles[i];
-      
-      // Skip empty filename (missing email blast)
-      if (!file) {
-        prompts.push('No email blast prompt available');
-        continue;
+      prompts = [];
+      for (let i = 0; i < promptFiles.length; i++) {
+        const file = promptFiles[i];
+        
+        // Skip empty filename (missing email blast)
+        if (!file) {
+          prompts.push('No email blast prompt available');
+          continue;
+        }
+        
+        try {
+          const filePath = join(process.cwd(), 'prompts', file);
+          const content = readFileSync(filePath, 'utf-8');
+          prompts.push(content);
+        } catch (error) {
+          console.error(`Error loading prompt file ${file}:`, error);
+          // Return a more detailed error response
+          return NextResponse.json(
+            { 
+              error: `Failed to load prompt file: ${file}`,
+              details: error instanceof Error ? error.message : 'Unknown error',
+              hint: 'Please ensure all prompt files are present in the prompts directory'
+            },
+            { status: 500 }
+          );
+        }
       }
       
-      try {
-        const filePath = join(process.cwd(), 'prompts', file);
-        const content = readFileSync(filePath, 'utf-8');
-        prompts.push(content);
-      } catch (error) {
-        console.error(`Error loading prompt file ${file}:`, error);
-        // Return a more detailed error response
-        return NextResponse.json(
-          { 
-            error: `Failed to load prompt file: ${file}`,
-            details: error instanceof Error ? error.message : 'Unknown error',
-            hint: 'Please ensure all prompt files are present in the prompts directory'
-          },
-          { status: 500 }
-        );
-      }
+      // Cache the prompts for future requests
+      promptCache = prompts;
+      console.log('Prompts cached successfully');
     }
 
     // Define which prompts use Haiku (faster/cheaper) vs Sonnet
-    const haikuIndices = [0, 4, 8]; // title, application invitation, FAQ generator
+    const haikuIndices = [0, 4]; // title, application invitation
     // Email (index 7) will use Sonnet for better quality
 
     // Create all evaluation functions (not executing yet)
@@ -286,17 +321,18 @@ export async function POST(request: Request) {
           } : undefined;
           
           return anthropic.messages.create(messageParams, options);
-        });
+        }, 5, 1000, index);
       };
     });
 
-    // Execute evaluations in batches
+    // Execute evaluations in parallel for maximum speed
     const startTime = Date.now();
     
-    // Process in batches of 2 to stay under rate limits
-    const responses = await processBatch(evaluationFunctions, 2);
+    // Process all evaluations in parallel
+    const responses = await processParallel(evaluationFunctions);
     
     const endTime = Date.now();
+    console.log(`All evaluations completed in ${endTime - startTime}ms`);
 
     // Extract content from responses - REMOVED OVERVIEW
     const results = {
@@ -308,7 +344,6 @@ export async function POST(request: Request) {
       growthPlan: '',
       coachingNotes: '',
       emailBlast: '',
-      faqInfo: null as any,
     };
 
     // Map responses to correct keys - REMOVED OVERVIEW
@@ -321,7 +356,6 @@ export async function POST(request: Request) {
       'growthPlan',
       'coachingNotes',
       'emailBlast',
-      'faqInfo'
     ];
 
     responses.forEach((response, index) => {
@@ -339,21 +373,7 @@ export async function POST(request: Request) {
           }
         }
         
-        // Special handling for FAQ info - parse JSON
-        if (key === 'faqInfo') {
-          try {
-            results[key as keyof typeof results] = JSON.parse(cleanedText);
-          } catch (error) {
-            console.error('Error parsing FAQ info:', error);
-            results[key as keyof typeof results] = {
-              studentName: 'Future Salem Student',
-              programInterest: 'General Studies',
-              topicsDiscussed: []
-            };
-          }
-        } else {
-          results[key as keyof typeof results] = cleanedText;
-        }
+        results[key as keyof typeof results] = cleanedText;
       } else {
         // No text content in response
         console.warn(`No text content in response for ${key}`);

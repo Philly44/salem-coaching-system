@@ -431,22 +431,24 @@ export default function Home() {
       
       const interval = setInterval(() => {
         setProgress(prev => {
-          // Show answer at 90%
-          if (prev >= 90) {
+          // Show answer at 50%
+          if (prev >= 50) {
             setShowAnswer(true);
           }
           
-          // Smooth progression: faster at start, slower near end
-          if (prev < 60) {
-            return prev + 3; // 3% every 300ms until 60%
-          } else if (prev < 80) {
-            return prev + 2; // 2% every 300ms until 80%
+          // More realistic progression for ~25 second API calls
+          if (prev < 40) {
+            return prev + 5; // 0-40% in ~2.4 seconds (fast start)
+          } else if (prev < 70) {
+            return prev + 2; // 40-70% in ~4.5 seconds
+          } else if (prev < 85) {
+            return prev + 0.8; // 70-85% in ~5.6 seconds
           } else if (prev < 95) {
-            return prev + 1; // 1% every 300ms until 95%
-          } else if (prev < 99) {
-            return prev + 0.5; // 0.5% every 300ms until 99%
+            return prev + 0.4; // 85-95% in ~7.5 seconds
+          } else if (prev < 98) {
+            return prev + 0.1; // 95-98% in ~9 seconds (very slow)
           }
-          return prev; // Stay at 99% until actual completion
+          return prev; // Stay at 98% until actual completion
         });
       }, 300);
 
@@ -567,7 +569,15 @@ export default function Home() {
               className="w-full bg-transparent hover:bg-transparent disabled:bg-transparent py-2 px-2 transition-all duration-200 transform hover:scale-110 disabled:scale-100 flex items-center justify-center"
             >
               {loading ? (
-                <div className="animate-spin rounded-full h-24 w-24 border-b-2 border-gray-900"></div>
+                <div className="relative h-24 w-24">
+                  <Image 
+                    src="/images/tiger.png" 
+                    alt="Loading"
+                    width={96}
+                    height={96}
+                    className="tiger-throb"
+                  />
+                </div>
               ) : (
                 <Image
                   src="/tiger.png"
@@ -593,20 +603,23 @@ export default function Home() {
                     )}
                   </div>
                 )}
-                <div className="bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div className="w-72 mx-auto bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
                   <div 
-                    className="h-full transition-all duration-300 ease-out"
+                    className="h-full transition-all duration-200 ease-out rounded-full relative overflow-hidden"
                     style={{ 
                       width: `${progress}%`,
-                      backgroundColor: '#00B140'
+                      background: 'linear-gradient(90deg, #00B140 0%, #00D150 50%, #00B140 100%)',
+                      backgroundSize: '200% 100%',
+                      animation: 'shimmer 2s ease-in-out infinite',
+                      boxShadow: '0 0 20px rgba(0, 177, 64, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.2)'
                     }}
                   ></div>
                 </div>
-                <p className="text-center mt-2 text-gray-600">Processing transcript... {progress}%</p>
               </div>
             )}
           </div>
         )}
+
 
         {results.length > 0 && (
           <>
