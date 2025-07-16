@@ -289,7 +289,8 @@ export async function POST(request: NextRequest) {
                   category: evaluation.name,
                   content: cleanedText,
                   completed: completedCount,
-                  total: evaluations.length
+                  total: evaluations.length,
+                  index: index
                 })}\n\n`));
               }
               

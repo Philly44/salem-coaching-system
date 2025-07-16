@@ -569,11 +569,21 @@ export default function Home() {
                 const progressPercent = (data.completed / data.total) * 100;
                 setProgress(progressPercent);
               } else if (data.type === 'result') {
-                // Add result as it arrives
-                setResults(prev => [...prev, {
-                  category: data.category,
-                  content: data.content
-                }]);
+                // Store result at its correct index to maintain order
+                setResults(prev => {
+                  const newResults = [...prev];
+                  
+                  // Use the index from the API to maintain correct order
+                  if (data.index !== undefined) {
+                    newResults[data.index] = {
+                      category: data.category,
+                      content: data.content
+                    };
+                  }
+                  
+                  // Return array with placeholders removed
+                  return newResults.filter(Boolean);
+                });
                 
                 // Update progress
                 const progressPercent = (data.completed / data.total) * 100;
