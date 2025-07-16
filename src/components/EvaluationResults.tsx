@@ -316,7 +316,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
               isImpactfulStatement 
                 ? 'bg-gradient-to-br from-amber-50 via-white to-amber-50 shadow-amber-100/50 hover:shadow-amber-200/50 transition-all duration-300' 
                 : isFollowUpEmail
-                ? 'bg-gradient-to-br from-green-50 via-white to-green-50 shadow-green-100/50 hover:shadow-green-200/50 transition-all duration-300'
+                ? 'bg-green-100 shadow-green-200/30'
                 : 'bg-white'
             }`}
             style={{ 
@@ -325,7 +325,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
                 boxShadow: '0 4px 20px 0 rgba(251, 191, 36, 0.1), 0 1px 3px 0 rgba(251, 191, 36, 0.08)'
               }),
               ...(isFollowUpEmail && {
-                boxShadow: '0 4px 20px 0 rgba(34, 197, 94, 0.1), 0 1px 3px 0 rgba(34, 197, 94, 0.08)'
+                boxShadow: '0 2px 10px 0 rgba(34, 197, 94, 0.15)'
               })
             }}
           >
