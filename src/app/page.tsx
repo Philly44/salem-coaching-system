@@ -479,10 +479,12 @@ export default function Home() {
     setLoading(true);
     setError('');
     setProgress(0);
+    setResults([]); // Clear previous results
 
     try {
-      console.log('Making API call to /api/evaluate');
-      const response = await fetch('/api/evaluate', {
+      // Try streaming endpoint first
+      console.log('Making streaming API call to /api/evaluate-stream');
+      let response = await fetch('/api/evaluate-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -491,35 +493,26 @@ export default function Home() {
       });
 
       console.log('API response status:', response.status);
-
-      if (!response.ok) {
-        throw new Error('Failed to evaluate transcript');
-      }
-
-      const data = await response.json();
-      console.log('API response data:', data);
       
-      // Smooth transition to 100%
-      setProgress(prev => {
-        const steps = 10;
-        const increment = (100 - prev) / steps;
+      // If streaming endpoint fails, fall back to regular endpoint
+      if (response.status === 404) {
+        console.log('Streaming endpoint not found, falling back to regular API');
+        response = await fetch('/api/evaluate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ transcript }),
+        });
         
-        for (let i = 1; i <= steps; i++) {
-          setTimeout(() => {
-            setProgress(current => Math.min(current + increment, 100));
-          }, i * 50); // 50ms between each update
+        // Handle non-streaming response
+        if (!response.ok) {
+          throw new Error('Failed to evaluate transcript');
         }
         
-        return prev; // Return current value for now
-      });
-
-      setTimeout(() => {
-        // DEBUG: Check data structure
-        console.log('Data structure:', JSON.stringify(data, null, 2));
-        console.log('Data type:', typeof data);
-        console.log('Is array?', Array.isArray(data));
-
-        // Convert object to array format expected by EvaluationResults - REMOVED OVERVIEW
+        const data = await response.json();
+        
+        // Convert to streaming-like updates
         const resultsArray = [
           { category: 'Title', content: data.title },
           { category: 'Most Impactful Statement', content: data.impactfulStatement },
@@ -529,14 +522,85 @@ export default function Home() {
           { category: 'Weekly Growth Plan', content: data.growthPlan },
           { category: 'Coaching Notes', content: data.coachingNotes },
           { category: 'Follow-up Email', content: data.emailBlast }
-        ].filter(item => item.content); // Remove any undefined entries
-
-
-        console.log('Converted results array:', resultsArray);
-        setResults(resultsArray);
+        ].filter(item => item.content);
+        
+        // Simulate streaming updates
+        for (let i = 0; i < resultsArray.length; i++) {
+          setResults(prev => [...prev, resultsArray[i]]);
+          setProgress(((i + 1) / resultsArray.length) * 100);
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         setLoading(false);
-        console.log('Results set, loading complete');
-      }, 800); // Increased delay to allow progress bar to complete smoothly
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to evaluate transcript');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process complete SSE messages
+        const messages = buffer.split('\n\n');
+        buffer = messages.pop() || ''; // Keep incomplete message in buffer
+        
+        for (const message of messages) {
+          if (message.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(message.slice(6));
+              
+              if (data.type === 'progress') {
+                // Update progress based on actual completion
+                const progressPercent = (data.completed / data.total) * 100;
+                setProgress(progressPercent);
+              } else if (data.type === 'result') {
+                // Add result as it arrives
+                setResults(prev => [...prev, {
+                  category: data.category,
+                  content: data.content
+                }]);
+                
+                // Update progress
+                const progressPercent = (data.completed / data.total) * 100;
+                setProgress(progressPercent);
+                
+                // Show joke answer at 75% progress
+                if (progressPercent >= 75 && !showAnswer) {
+                  setShowAnswer(true);
+                }
+              } else if (data.type === 'error') {
+                console.error(`Error in ${data.category}:`, data.error);
+                // Continue processing other results
+              } else if (data.type === 'complete') {
+                console.log(`Evaluation complete. Processed ${data.total} items.`);
+                setProgress(100);
+              } else if (data.error) {
+                throw new Error(data.error);
+              }
+            } catch (e) {
+              console.error('Error parsing SSE message:', e);
+            }
+          }
+        }
+      }
+
+      setLoading(false);
+      console.log('Streaming complete');
 
     } catch (err) {
       console.error('Error in handleEvaluate:', err);
@@ -553,7 +617,7 @@ export default function Home() {
           <p className="text-gray-600">Salem University</p>
         </div>
 
-        {!results.length && (
+        {!results.length && !loading && (
           <div className="bg-white rounded-xl shadow-2xl p-8 mb-8">
             <div className="mb-6">
               <textarea
@@ -575,76 +639,83 @@ export default function Home() {
               disabled={!transcript.trim() || loading}
               className="w-full bg-transparent hover:bg-transparent disabled:bg-transparent py-2 px-2 transition-all duration-200 transform hover:scale-110 disabled:scale-100 flex items-center justify-center"
             >
-              {loading ? (
-                <div className="relative h-24 w-24">
-                  <Image 
-                    src="/images/tiger.png" 
-                    alt="Loading"
-                    width={96}
-                    height={96}
-                    className="tiger-throb"
-                  />
-                </div>
-              ) : (
-                <Image
-                  src="/tiger.png"
-                  alt="Salem Tiger"
-                  width={120}
-                  height={120}
-                  className="cursor-pointer transition-opacity duration-1000"
-                />
-              )}
+              <Image
+                src="/tiger.png"
+                alt="Salem Tiger"
+                width={120}
+                height={120}
+                className="cursor-pointer transition-opacity duration-1000"
+              />
             </button>
+          </div>
+        )}
 
-            {loading && (
-              <div className="mt-3">
-                {currentJoke && (
-                  <div className="text-center min-h-[60px]">
-                    {showJokeQuestion && (
-                      <p className="text-lg font-semibold text-gray-800 mb-1 animate-fade-in">
-                        {currentJoke.question}
-                      </p>
-                    )}
-                    {showAnswer && (
-                      <p className="text-lg text-green-600 animate-fade-in">
-                        {currentJoke.answer}
-                      </p>
-                    )}
-                  </div>
-                )}
-                <div className="w-72 mx-auto bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-                  <div 
-                    className="h-full transition-all duration-200 ease-out rounded-full relative overflow-hidden"
-                    style={{ 
-                      width: `${progress}%`,
-                      background: 'linear-gradient(90deg, #00B140 0%, #00D150 50%, #00B140 100%)',
-                      backgroundSize: '200% 100%',
-                      animation: 'shimmer 2s ease-in-out infinite',
-                      boxShadow: '0 0 20px rgba(0, 177, 64, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.2)'
-                    }}
-                  ></div>
-                </div>
+        {loading && (
+          <div className="bg-white rounded-xl shadow-2xl p-8 mb-8">
+            <div className="flex flex-col items-center">
+              <div className="relative h-24 w-24 mb-4">
+                <Image 
+                  src="/images/tiger.png" 
+                  alt="Loading"
+                  width={96}
+                  height={96}
+                  className="tiger-throb"
+                />
               </div>
-            )}
+              
+              {currentJoke && (
+                <div className="text-center min-h-[60px] mb-4">
+                  {showJokeQuestion && (
+                    <p className="text-lg font-semibold text-gray-800 mb-1 animate-fade-in">
+                      {currentJoke.question}
+                    </p>
+                  )}
+                  {showAnswer && (
+                    <p className="text-lg text-green-600 animate-fade-in">
+                      {currentJoke.answer}
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              <div className="w-72 mx-auto bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div 
+                  className="h-full transition-all duration-200 ease-out rounded-full relative overflow-hidden"
+                  style={{ 
+                    width: `${progress}%`,
+                    background: 'linear-gradient(90deg, #00B140 0%, #00D150 50%, #00B140 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 2s ease-in-out infinite',
+                    boxShadow: '0 0 20px rgba(0, 177, 64, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.2)'
+                  }}
+                ></div>
+              </div>
+              
+              <p className="mt-2 text-sm text-gray-600">
+                {Math.round(progress)}% Complete - {results.length} of 8 evaluations
+              </p>
+            </div>
           </div>
         )}
 
 
         {results.length > 0 && (
           <>
-            <button
-              onClick={() => {
-                setResults([]);
-                setTranscript('');
-                setError('');
-                setProgress(0);
-                setShowAnswer(false);
-                setShowJokeQuestion(false);
-              }}
-              className="mb-6 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              ← New Evaluation
-            </button>
+            {!loading && (
+              <button
+                onClick={() => {
+                  setResults([]);
+                  setTranscript('');
+                  setError('');
+                  setProgress(0);
+                  setShowAnswer(false);
+                  setShowJokeQuestion(false);
+                }}
+                className="mb-6 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                ← New Evaluation
+              </button>
+            )}
             <EvaluationResults results={results} transcript={transcript} />
           </>
         )}
