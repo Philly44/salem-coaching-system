@@ -628,18 +628,19 @@ export default function Home() {
               } else if (data.type === 'result') {
                 // Store result at its correct index to maintain order
                 setResults(prev => {
-                  const newResults = [...prev];
+                  // Create array with 8 slots if empty
+                  const newResults = prev.length === 0 ? new Array(8).fill(null) : [...prev];
                   
                   // Use the index from the API to maintain correct order
-                  if (data.index !== undefined) {
+                  if (data.index !== undefined && data.index < 8) {
                     newResults[data.index] = {
                       category: data.category,
                       content: data.content
                     };
                   }
                   
-                  // Return array with placeholders removed
-                  return newResults.filter(Boolean);
+                  // Return array maintaining all positions
+                  return newResults;
                 });
                 
                 // Update progress
@@ -656,6 +657,8 @@ export default function Home() {
               } else if (data.type === 'complete') {
                 console.log(`Evaluation complete. Processed ${data.total} items.`);
                 setProgress(100);
+                // Clean up any null entries after completion
+                setResults(prev => prev.filter(Boolean));
               } else if (data.error) {
                 throw new Error(data.error);
               }

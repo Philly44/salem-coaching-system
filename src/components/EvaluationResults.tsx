@@ -131,7 +131,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
 
   return (
     <div className="space-y-6">
-      {results.map((result, index) => {
+      {results.filter(Boolean).map((result, index) => {
         // Special handling for Talk/Listen Ratio Analysis
         const isTalkListenRatio = result.category === 'Talk/Listen Ratio Analysis';   
         // Special handling for Weekly Growth Plan
