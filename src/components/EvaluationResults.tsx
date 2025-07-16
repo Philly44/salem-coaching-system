@@ -311,7 +311,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             key={index} 
             className={`rounded-xl shadow-lg p-6 animate-fade-in ${
               isImpactfulStatement 
-                ? 'bg-gradient-to-br from-amber-50 via-white to-amber-50 shadow-amber-100/50 hover:shadow-amber-200/50 transition-all duration-300 golden-shimmer' 
+                ? 'bg-gradient-to-br from-amber-50 via-white to-amber-50 shadow-amber-100/50 hover:shadow-amber-200/50 transition-all duration-300' 
                 : 'bg-white'
             }`}
             style={{ 
