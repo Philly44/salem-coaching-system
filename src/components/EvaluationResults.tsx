@@ -306,18 +306,26 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           result.category.includes('The Exchange') ||
           result.category.includes('The Part');
         
+        // Check if this is the follow-up email
+        const isFollowUpEmail = result.category === 'Follow-up Email';
+        
         return (
           <div 
             key={index} 
             className={`rounded-xl shadow-lg p-6 animate-fade-in ${
               isImpactfulStatement 
                 ? 'bg-gradient-to-br from-amber-50 via-white to-amber-50 shadow-amber-100/50 hover:shadow-amber-200/50 transition-all duration-300' 
+                : isFollowUpEmail
+                ? 'bg-gradient-to-br from-green-50 via-white to-green-50 shadow-green-100/50 hover:shadow-green-200/50 transition-all duration-300'
                 : 'bg-white'
             }`}
             style={{ 
               animationDelay: `${index * 100}ms`,
               ...(isImpactfulStatement && {
                 boxShadow: '0 4px 20px 0 rgba(251, 191, 36, 0.1), 0 1px 3px 0 rgba(251, 191, 36, 0.08)'
+              }),
+              ...(isFollowUpEmail && {
+                boxShadow: '0 4px 20px 0 rgba(34, 197, 94, 0.1), 0 1px 3px 0 rgba(34, 197, 94, 0.08)'
               })
             }}
           >
@@ -325,6 +333,9 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
               <h2 className={`font-bold text-gray-900 ${isImpactfulStatement ? 'text-2xl md:text-3xl' : 'text-2xl'}`}>
                 {isImpactfulStatement && (
                   <span className="inline-block mr-2 text-amber-500">✨</span>
+                )}
+                {isFollowUpEmail && (
+                  <span className="inline-block mr-2 text-green-600">✉️</span>
                 )}
                 {result.category}
               </h2> 
