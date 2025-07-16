@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
           { key: 'applicationInvitation', name: 'Application Invitation Assessment', useHaiku: true },
           { key: 'growthPlan', name: 'Weekly Growth Plan', useHaiku: false },
           { key: 'coachingNotes', name: 'Coaching Notes', useHaiku: false },
-          { key: 'emailBlast', name: 'Follow-up Email', useHaiku: false },
+          { key: 'emailBlast', name: 'Email After Interview, Same Day', useHaiku: false },
         ];
 
         const results: Partial<EvaluationResults> = {};

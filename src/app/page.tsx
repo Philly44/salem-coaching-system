@@ -578,7 +578,7 @@ export default function Home() {
           { category: 'Application Invitation Assessment', content: data.applicationInvitation },
           { category: 'Weekly Growth Plan', content: data.growthPlan },
           { category: 'Coaching Notes', content: data.coachingNotes },
-          { category: 'Follow-up Email', content: data.emailBlast }
+          { category: 'Email After Interview, Same Day', content: data.emailBlast }
         ].filter(item => item.content);
         
         // Simulate streaming updates

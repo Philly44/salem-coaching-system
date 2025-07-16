@@ -156,7 +156,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             // Fallback if no Strategy #1 found - just show cleaned content
             cleanedContent = cleaned;
           }
-        } else if (result.category === 'Follow-up Email') {
+        } else if (result.category === 'Email After Interview, Same Day') {
           // Special handling for email content
           const cleaned = removeDuplicateHeading(result.content, result.category);
           
@@ -307,7 +307,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           result.category.includes('The Part');
         
         // Check if this is the follow-up email
-        const isFollowUpEmail = result.category === 'Follow-up Email';
+        const isFollowUpEmail = result.category === 'Email After Interview, Same Day';
         
         return (
           <div 
