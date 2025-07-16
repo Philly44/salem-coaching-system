@@ -591,7 +591,7 @@ export default function Home() {
                   alt="Salem Tiger"
                   width={120}
                   height={120}
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-opacity duration-1000"
                 />
               )}
             </button>

@@ -8,8 +8,9 @@ import { sendEvaluationEmail as sendgridEmail } from '@/utils/sendgridEmailServi
 import { sendEvaluationEmail as smtpEmail } from '@/utils/emailService';
 import { EvaluationResults, APIError, AnthropicResponse } from '@/types/evaluation';
 
-// Cache for prompt files - loaded once on first request
-let promptCache: string[] | null = null;
+// IMPORTANT: Do NOT cache prompts at module level!
+// In serverless environments, module-level variables persist across requests
+// from different users, causing data leakage between sessions.
 
 // Helper function to remove AI preamble text
 function removePreamble(text: string): string {
@@ -231,56 +232,44 @@ export async function POST(request: Request) {
       apiKey: API_KEY,
     });
 
-    // Load prompts from cache or disk
-    let prompts: string[];
-    
-    if (promptCache) {
-      // Use cached prompts for faster response
-      prompts = promptCache;
-    } else {
-      // First time - load and cache prompts
-      const promptFiles = [
-        '01_title prompt.txt',
-        '02_most impactful statement prompt.txt',
-        '04_interview scorecard prompt.txt',
-        '09_talk time.txt',
-        '05_application invitation assessment prompt.txt',
-        '06_weekly growth plan prompt.txt',
-        '07_coaching notes prompt.txt',
-        '08_email_blast_prompt.txt',  // Email blast prompt
-      ];
+    // Load prompts fresh for each request to prevent data leakage
+    const promptFiles = [
+      '01_title prompt.txt',
+      '02_most impactful statement prompt.txt',
+      '04_interview scorecard prompt.txt',
+      '09_talk time.txt',
+      '05_application invitation assessment prompt.txt',
+      '06_weekly growth plan prompt.txt',
+      '07_coaching notes prompt.txt',
+      '08_email_blast_prompt.txt',  // Email blast prompt
+    ];
 
-      prompts = [];
-      for (let i = 0; i < promptFiles.length; i++) {
-        const file = promptFiles[i];
-        
-        // Skip empty filename (missing email blast)
-        if (!file) {
-          prompts.push('No email blast prompt available');
-          continue;
-        }
-        
-        try {
-          const filePath = join(process.cwd(), 'prompts', file);
-          const content = readFileSync(filePath, 'utf-8');
-          prompts.push(content);
-        } catch (error) {
-          console.error(`Error loading prompt file ${file}:`, error);
-          // Return a more detailed error response
-          return NextResponse.json(
-            { 
-              error: `Failed to load prompt file: ${file}`,
-              details: error instanceof Error ? error.message : 'Unknown error',
-              hint: 'Please ensure all prompt files are present in the prompts directory'
-            },
-            { status: 500 }
-          );
-        }
+    const prompts: string[] = [];
+    for (let i = 0; i < promptFiles.length; i++) {
+      const file = promptFiles[i];
+      
+      // Skip empty filename (missing email blast)
+      if (!file) {
+        prompts.push('No email blast prompt available');
+        continue;
       }
       
-      // Cache the prompts for future requests
-      promptCache = prompts;
-      console.log('Prompts cached successfully');
+      try {
+        const filePath = join(process.cwd(), 'prompts', file);
+        const content = readFileSync(filePath, 'utf-8');
+        prompts.push(content);
+      } catch (error) {
+        console.error(`Error loading prompt file ${file}:`, error);
+        // Return a more detailed error response
+        return NextResponse.json(
+          { 
+            error: `Failed to load prompt file: ${file}`,
+            details: error instanceof Error ? error.message : 'Unknown error',
+            hint: 'Please ensure all prompt files are present in the prompts directory'
+          },
+          { status: 500 }
+        );
+      }
     }
 
     // Define which prompts use Haiku (faster/cheaper) vs Sonnet
