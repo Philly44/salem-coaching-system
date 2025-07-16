@@ -66,14 +66,12 @@ function formatEvaluationEmail(results: any): string {
     emailBlast,
   } = results;
 
-  // Convert markdown to HTML (basic conversion)
-  const mdToHtml = (text: string) => {
+  // Simple text formatting - convert markdown basics to plain HTML
+  const formatText = (text: string) => {
     return text
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^[•\-\*]\s+(.+)$/gm, '• $1')
+      .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>');
   };
 
@@ -83,102 +81,83 @@ function formatEvaluationEmail(results: any): string {
     <head>
       <style>
         body {
-          font-family: Arial, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+          font-size: 16px;
           line-height: 1.6;
           color: #333;
-          max-width: 800px;
+          max-width: 600px;
           margin: 0 auto;
           padding: 20px;
         }
-        h1, h2, h3 {
-          color: #1e40af;
+        h1 {
+          font-size: 24px;
+          font-weight: bold;
+          margin: 0 0 20px 0;
+          text-transform: uppercase;
         }
-        .section {
-          margin-bottom: 30px;
-          padding: 20px;
-          background: #f3f4f6;
-          border-radius: 8px;
+        h2 {
+          font-size: 18px;
+          font-weight: bold;
+          margin: 30px 0 10px 0;
+          text-transform: uppercase;
         }
-        .header {
-          background: #1e40af;
-          color: white;
-          padding: 20px;
-          border-radius: 8px;
-          margin-bottom: 30px;
+        p {
+          margin: 0 0 15px 0;
         }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 10px 0;
-        }
-        th, td {
-          border: 1px solid #ddd;
-          padding: 8px;
-          text-align: left;
-        }
-        th {
-          background-color: #1e40af;
-          color: white;
+        strong {
+          font-weight: 600;
         }
         .timestamp {
-          color: #6b7280;
+          color: #666;
           font-size: 14px;
+          margin-bottom: 30px;
+        }
+        .footer {
+          margin-top: 50px;
+          padding-top: 20px;
+          border-top: 1px solid #ddd;
+          font-size: 14px;
+          color: #666;
+        }
+        pre {
+          font-family: inherit;
+          white-space: pre-wrap;
+          margin: 0;
         }
       </style>
     </head>
     <body>
-      <div class="header">
-        <h1>Salem Coaching System - Evaluation Results</h1>
-        <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
+      <h1>Coaching Evaluation Results</h1>
+      <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
+
+      <h2>Title</h2>
+      <p>${title}</p>
+
+      <h2>Most Impactful Statement</h2>
+      <p>${formatText(impactfulStatement)}</p>
+
+      <h2>Interview Scorecard</h2>
+      <p>${formatText(scorecard)}</p>
+
+      <h2>Talk/Listen Ratio Analysis</h2>
+      <p>${formatText(talkListenRatio)}</p>
+
+      <h2>Application Invitation Assessment</h2>
+      <p>${formatText(applicationInvitation)}</p>
+
+      <h2>Weekly Growth Plan</h2>
+      <p>${formatText(growthPlan)}</p>
+
+      <h2>Coaching Notes</h2>
+      <p>${formatText(coachingNotes)}</p>
+
+      <h2>Follow-up Email Template</h2>
+      <pre>${emailBlast}</pre>
+
+      <div class="footer">
+        Salem University Coaching Evaluation System<br>
+        For questions, please contact andrew.subryan@salemu.edu
       </div>
-
-      <div class="section">
-        <h2>Title</h2>
-        <p>${title}</p>
-      </div>
-
-      <div class="section">
-        <h2>Most Impactful Statement</h2>
-        ${mdToHtml(impactfulStatement)}
-      </div>
-
-      <div class="section">
-        <h2>Interview Scorecard</h2>
-        ${mdToHtml(scorecard)}
-      </div>
-
-      <div class="section">
-        <h2>Talk/Listen Ratio Analysis</h2>
-        ${mdToHtml(talkListenRatio)}
-      </div>
-
-      <div class="section">
-        <h2>Application Invitation Assessment</h2>
-        ${mdToHtml(applicationInvitation)}
-      </div>
-
-      <div class="section">
-        <h2>Weekly Growth Plan</h2>
-        ${mdToHtml(growthPlan)}
-      </div>
-
-      <div class="section">
-        <h2>Coaching Notes</h2>
-        ${mdToHtml(coachingNotes)}
-      </div>
-
-      <div class="section">
-        <h2>Follow-up Email</h2>
-        <pre style="background: white; padding: 15px; border-radius: 4px; overflow-x: auto;">
-${emailBlast}
-        </pre>
-      </div>
-
-
-      <hr style="margin-top: 40px; border: none; border-top: 1px solid #ddd;">
-      <p style="color: #6b7280; font-size: 12px; text-align: center;">
-        This is an automated email from the Salem Coaching System. Please do not reply to this email.
-      </p>
     </body>
     </html>
   `;
