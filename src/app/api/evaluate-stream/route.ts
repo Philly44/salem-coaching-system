@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
               const isEmail = evaluation.key === 'emailBlast';
               
               // Give more tokens to longer outputs
-              let maxTokens = apiConfig.tokenLimits.default;
+              let maxTokens: number = apiConfig.tokenLimits.default;
               if ((isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku) {
                 maxTokens = apiConfig.tokenLimits.growthPlan; // 8192 tokens
               }
