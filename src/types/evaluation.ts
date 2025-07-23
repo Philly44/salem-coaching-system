@@ -44,29 +44,3 @@ export interface APIError {
   };
   message?: string;
 }
-
-/**
- * Email configuration for nodemailer
- */
-export interface EmailConfig {
-  to: string;
-  cc?: string;
-  subject: string;
-  html: string;
-}
-
-/**
- * SendGrid message configuration
- */
-export interface SendGridMessage {
-  to: string;
-  cc?: string;
-  from: {
-    email: string;
-    name: string;
-  } | string;
-  replyTo: string;
-  subject: string;
-  text: string;
-  html: string;
-}

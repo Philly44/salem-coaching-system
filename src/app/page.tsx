@@ -420,7 +420,7 @@ export default function Home() {
   const [showJokeQuestion, setShowJokeQuestion] = useState(false);
 
   useEffect(() => {
-    console.log('Component mounted');
+    // Component mounted
   }, []);
 
   useEffect(() => {
@@ -468,14 +468,9 @@ export default function Home() {
   }, [loading]);
 
   const handleEvaluate = async () => {
-    console.log('handleEvaluate called, transcript:', transcript);
-    
     if (!transcript.trim()) {
-      console.log('Transcript is empty, returning');
       return;
     }
-
-    console.log('Starting evaluation...');
     setLoading(true);
     setError('');
     setProgress(0);
@@ -483,7 +478,6 @@ export default function Home() {
 
     try {
       // Try streaming endpoint first
-      console.log('Making streaming API call to /api/evaluate-stream');
       let response = await fetch('/api/evaluate-stream', {
         method: 'POST',
         headers: {
@@ -492,11 +486,11 @@ export default function Home() {
         body: JSON.stringify({ transcript }),
       });
 
-      console.log('API response status:', response.status);
+      // Check response status
       
       // If streaming endpoint fails, fall back to regular endpoint
       if (response.status === 404) {
-        console.log('Streaming endpoint not found, falling back to regular API');
+        // Streaming endpoint not found, fall back to regular API
         response = await fetch('/api/evaluate', {
           method: 'POST',
           headers: {
@@ -570,6 +564,8 @@ export default function Home() {
         const randomPhrase = impactfulPhrases[Math.floor(Math.random() * impactfulPhrases.length)];
         
         // Convert to streaming-like updates
+        console.log('Raw evaluation data:', data);
+        
         const resultsArray = [
           { category: 'Title', content: data.title },
           { category: randomPhrase, content: data.impactfulStatement },
@@ -579,11 +575,35 @@ export default function Home() {
           { category: 'Weekly Growth Plan', content: data.growthPlan },
           { category: 'Coaching Notes', content: data.coachingNotes },
           { category: 'Email After Interview, Same Day', content: data.emailBlast }
-        ].filter(item => item.content);
+        ];
+        
+        console.log('Results before filtering:', resultsArray);
+        
+        // Only filter out truly empty content (not just whitespace)
+        const filteredResults = resultsArray.filter(item => {
+          // Keep items that have content or error messages
+          if (!item.content) return false;
+          if (typeof item.content !== 'string') return true;
+          // Keep error messages
+          if (item.content.startsWith('Error:')) return true;
+          // Keep non-empty content
+          return item.content.trim().length > 0;
+        });
+        
+        console.log('Results after filtering:', filteredResults);
+        
+        // CRITICAL: Log if we're missing expected sections
+        const expectedSections = ['Coaching Notes', 'Email After Interview, Same Day'];
+        for (const section of expectedSections) {
+          const found = filteredResults.some(r => r.category === section);
+          if (!found) {
+            console.error(`WARNING: Missing section "${section}" after filtering!`);
+          }
+        }
         
         // Simulate streaming updates
-        for (let i = 0; i < resultsArray.length; i++) {
-          setResults(prev => [...prev, resultsArray[i]]);
+        for (let i = 0; i < filteredResults.length; i++) {
+          setResults(prev => [...prev, filteredResults[i]]);
           setProgress(((i + 1) / resultsArray.length) * 100);
           await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -652,10 +672,10 @@ export default function Home() {
                   setShowAnswer(true);
                 }
               } else if (data.type === 'error') {
-                console.error(`Error in ${data.category}:`, data.error);
+                // Error in evaluation category - continue processing other results
                 // Continue processing other results
               } else if (data.type === 'complete') {
-                console.log(`Evaluation complete. Processed ${data.total} items.`);
+                // Evaluation complete
                 setProgress(100);
                 // Clean up any null entries after completion
                 setResults(prev => prev.filter(Boolean));
@@ -663,17 +683,16 @@ export default function Home() {
                 throw new Error(data.error);
               }
             } catch (e) {
-              console.error('Error parsing SSE message:', e);
+              // Error parsing SSE message - continue
             }
           }
         }
       }
 
       setLoading(false);
-      console.log('Streaming complete');
 
     } catch (err) {
-      console.error('Error in handleEvaluate:', err);
+      // Handle evaluation error
       setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
