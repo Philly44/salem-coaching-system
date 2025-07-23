@@ -21,6 +21,9 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
   const emailResult = results.find(r => r && r.category === 'Email After Interview, Same Day');
   const impactfulResult = results.find(r => r && (r.category.includes('"') || r.category.includes('That ') || r.category.includes('When ')));
   const titleResult = results.find(r => r && r.category === 'Title');
+  
+  // Extract title content and remove markdown bold markers
+  const titleContent = titleResult?.content.replace(/\*\*/g, '') || '';
 
   const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -133,8 +136,19 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {results.filter(Boolean).map((result, index) => {
+    <div>
+      {/* Display Title as a header, not as a card */}
+      {titleContent && (
+        <div className="mb-8 text-center">
+          <h1 className="text-lg font-semibold text-gray-800">
+            {titleContent}
+          </h1>
+        </div>
+      )}
+      
+      {/* Display all other results as cards */}
+      <div className="space-y-6">
+        {results.filter(result => result && result.category !== 'Title').map((result, index) => {
         // Special handling for Talk/Listen Ratio Analysis
         const isTalkListenRatio = result.category === 'Talk/Listen Ratio Analysis';   
         // Special handling for Weekly Growth Plan
@@ -240,7 +254,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           
           return (
             <div key={index}>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">{result.category}</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{result.category}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 {/* Strategy 1 Card */}
                 <div className="bg-white rounded-xl shadow-lg p-6 min-h-full animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
@@ -328,7 +342,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
               }}
             >
               <div className="flex justify-between items-start mb-4">
-                <h2 className="font-bold text-gray-900 text-2xl">
+                <h2 className="font-bold text-gray-900 text-xl">
                   Momentum Email
                 </h2>
                 <button
@@ -407,26 +421,202 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           );
         }
         
+        // Special handling for Great Moment (impactful statement)
+        if (isImpactfulStatement) {
+          // Remove the "## Great Moment" header if it exists
+          let processedContent = cleanedContent;
+          processedContent = processedContent.replace(/^##\s*Great Moment\s*\n/gm, '');
+          processedContent = processedContent.replace(/^Great Moment\s*\n/gm, '');
+          
+          // First, let's clean up any markdown bold markers that might be causing duplication
+          processedContent = processedContent.replace(/\*\*(.*?)\*\*/g, '$1');
+          
+          // Parse the content to extract the quote, timestamp, and explanation
+          const lines = processedContent.split('\n').filter(line => line.trim());
+          
+          // Find the quote line (contains 💫 and quotes)
+          let quoteLine = lines.find(line => line.includes('💫') && line.includes('"'));
+          
+          // Clean the quote - remove extra emoji
+          if (quoteLine) {
+            quoteLine = quoteLine.replace(/💫\s*💫/, '💫'); // Remove duplicate emoji
+            quoteLine = quoteLine.trim();
+          }
+          
+          // Find the timestamp/description line
+          let timestampLine = null;
+          let explanationLines = [];
+          
+          // Process remaining lines after quote
+          const quoteIndex = quoteLine ? lines.indexOf(quoteLine) : -1;
+          const remainingLines = quoteIndex >= 0 ? lines.slice(quoteIndex + 1) : lines;
+          
+          // Look for timestamp line and collect explanation
+          for (const line of remainingLines) {
+            if (line.match(/^\[[\d:]+\]/) && !timestampLine) {
+              timestampLine = line;
+            } else if (line.toLowerCase().includes('this moment') || 
+                      line.toLowerCase().includes('this quote') ||
+                      line.toLowerCase().includes('the advisor') ||
+                      line.trim().startsWith('•') ||
+                      line.trim().startsWith('-')) {
+              explanationLines.push(line);
+            }
+          }
+          
+          return (
+            <div 
+              key={index} 
+              className="rounded-xl shadow-lg p-6 animate-fade-in bg-amber-100 shadow-amber-200/30 hover:shadow-amber-200/50 transition-all duration-300"
+              style={{ 
+                animationDelay: `${index * 100}ms`,
+                boxShadow: '0 2px 10px 0 rgba(251, 191, 36, 0.15)'
+              }}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="font-bold text-gray-900 text-2xl md:text-3xl">
+                  {result.category}
+                </h2>
+                <button
+                  onClick={() => copyToClipboard(result.content, index)}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                  title="Copy to clipboard"
+                >
+                  {copiedIndex === index ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <div className="space-y-4">
+                {quoteLine && (
+                  <div className="bg-white p-4 rounded-lg border border-amber-200">
+                    <p className="text-gray-800 italic text-lg leading-relaxed">
+                      {quoteLine.startsWith('💫') ? quoteLine : `💫 ${quoteLine}`}
+                    </p>
+                  </div>
+                )}
+                {timestampLine && (
+                  <p className="text-gray-700">
+                    {timestampLine}
+                  </p>
+                )}
+                {explanationLines.length > 0 && (
+                  <div className="space-y-2">
+                    {explanationLines.map((line, i) => {
+                      // Check if this line starts a bullet point
+                      if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+                        return (
+                          <p key={i} className="text-gray-700 ml-4">
+                            • {line.replace(/^[-•]\s*/, '').trim()}
+                          </p>
+                        );
+                      }
+                      return <p key={i} className="text-gray-700">{line}</p>;
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+        
+        // Special handling for Interview Scorecard
+        const isScorecard = result.category === 'Interview Scorecard';
+        if (isScorecard) {
+          return (
+            <div 
+              key={index} 
+              className="rounded-xl shadow-lg p-6 animate-fade-in bg-white"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="font-bold text-gray-900 text-xl">Interview Scorecard</h2>
+                <button
+                  onClick={() => copyToClipboard(result.content, index)}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                  title="Copy to clipboard"
+                >
+                  {copiedIndex === index ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <div className="prose prose-gray max-w-none scorecard-content">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    table: ({ children }: { children?: React.ReactNode }) => (
+                      <table className="w-full border-collapse mb-6">
+                        {children}
+                      </table>
+                    ),
+                    thead: ({ children }: { children?: React.ReactNode }) => (
+                      <thead>
+                        {children}
+                      </thead>
+                    ),
+                    tbody: ({ children }: { children?: React.ReactNode }) => (
+                      <tbody>
+                        {children}
+                      </tbody>
+                    ),
+                    tr: ({ children }: { children?: React.ReactNode }) => (
+                      <tr className="border-b border-gray-200">
+                        {children}
+                      </tr>
+                    ),
+                    th: ({ children }: { children?: React.ReactNode }) => (
+                      <th className="text-left py-2 px-3 bg-gray-50 font-semibold text-gray-900">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }: { children?: React.ReactNode }) => (
+                      <td className="py-2 px-3 text-gray-700">
+                        {children}
+                      </td>
+                    ),
+                    h1: ({ children }: { children?: React.ReactNode }) => (
+                      <h1 className="text-xl font-bold text-gray-900 mb-3">{children}</h1>
+                    ),
+                    h2: ({ children }: { children?: React.ReactNode }) => (
+                      <h2 className="text-lg font-semibold text-gray-900 mb-2 mt-4">{children}</h2>
+                    ),
+                    h3: ({ children }: { children?: React.ReactNode }) => (
+                      <h3 className="text-base font-medium text-gray-900 mb-2">{children}</h3>
+                    ),
+                    p: ({ children }: { children?: React.ReactNode }) => (
+                      <p className="text-gray-700 mb-3">{children}</p>
+                    ),
+                    strong: ({ children }: { children?: React.ReactNode }) => (
+                      <strong className="font-semibold text-gray-900">{children}</strong>
+                    ),
+                    ul: ({ children }: { children?: React.ReactNode }) => (
+                      <ul className="list-disc list-inside mb-3 text-gray-700">{children}</ul>
+                    ),
+                    li: ({ children }: { children?: React.ReactNode }) => (
+                      <li className="mb-1">{children}</li>
+                    ),
+                  }}
+                >
+                  {cleanedContent}
+                </ReactMarkdown>
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div 
             key={index} 
-            className={`rounded-xl shadow-lg p-6 animate-fade-in ${
-              isImpactfulStatement 
-                ? 'bg-amber-100 shadow-amber-200/30 hover:shadow-amber-200/50 transition-all duration-300' 
-                : 'bg-white'
-            }`}
-            style={{ 
-              animationDelay: `${index * 100}ms`,
-              ...(isImpactfulStatement && {
-                boxShadow: '0 2px 10px 0 rgba(251, 191, 36, 0.15)'
-              })
-            }}
+            className="rounded-xl shadow-lg p-6 animate-fade-in bg-white"
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex justify-between items-start mb-4">
-              <h2 className={`font-bold text-gray-900 ${isImpactfulStatement ? 'text-2xl md:text-3xl' : 'text-2xl'}`}>
-                {isImpactfulStatement && (
-                  <span className="inline-block mr-2 text-amber-500">✨</span>
-                )}
+              <h2 className="font-bold text-gray-900 text-xl">
                 {result.category}
               </h2> 
               <button
@@ -521,6 +711,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

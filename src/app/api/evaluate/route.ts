@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
       throw new Error(`Incomplete responses: expected 8, got ${responses.length}`);
     }
 
-    // Extract content from responses - REMOVED OVERVIEW
+    // Extract content from responses
     const results: EvaluationResults = {
       title: '',
       impactfulStatement: '',
@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
       emailBlast: '',
     };
 
-    // Map responses to correct keys - REMOVED OVERVIEW
+    // Map responses to correct keys
     const responseMapping = [
       'title',
       'impactfulStatement',

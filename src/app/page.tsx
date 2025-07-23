@@ -702,7 +702,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 text-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Instant Replay</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Salem Coaching System</h1>
           <p className="text-gray-600">Salem University</p>
         </div>
 
