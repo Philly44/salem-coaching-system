@@ -222,8 +222,20 @@ export async function POST(request: NextRequest) {
                 }
               }
               
-              // Wait for token bucket capacity
-              await tokenBucket.waitForTokens(maxTokens);
+              // Wait for token bucket capacity with timeout
+              const tokenTimeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Token bucket timeout')), 10000)
+              );
+              
+              try {
+                await Promise.race([
+                  tokenBucket.waitForTokens(maxTokens),
+                  tokenTimeout
+                ]);
+              } catch (err) {
+                console.error(`Token bucket timeout for ${evaluation.name}`);
+                // Continue anyway - let the API rate limit us if needed
+              }
               
               const needsExtendedTokens = (isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku;
               
@@ -255,10 +267,17 @@ export async function POST(request: NextRequest) {
                   throw new Error('Growth Plan response was truncated. Retrying...');
                 }
                 
-                if (evaluation.key === 'emailBlast' && !cleanedText.startsWith('Subject:')) {
-                  const subjectIndex = cleanedText.indexOf('Subject:');
-                  if (subjectIndex > 0) {
-                    cleanedText = cleanedText.substring(subjectIndex);
+                if (evaluation.key === 'emailBlast') {
+                  // More robust email handling
+                  if (!cleanedText.includes('Subject:')) {
+                    // If no subject found, create a basic email structure
+                    cleanedText = `Subject: Your Path Forward at Salem University\n\n${cleanedText}`;
+                  } else if (!cleanedText.startsWith('Subject:')) {
+                    // Extract from wherever Subject: appears
+                    const subjectIndex = cleanedText.indexOf('Subject:');
+                    if (subjectIndex > 0) {
+                      cleanedText = cleanedText.substring(subjectIndex);
+                    }
                   }
                 }
                 
