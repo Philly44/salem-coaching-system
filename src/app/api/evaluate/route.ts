@@ -18,9 +18,9 @@ type APIError = {
 };
 
 // Helper function to process requests with staggered parallel execution
-async function processParallel<T>(
-  promises: (() => Promise<T>)[]
-): Promise<T[]> {
+async function processParallel(
+  promises: (() => Promise<any>)[]
+): Promise<any[]> {
   console.log(`Starting ${promises.length} API calls with staggered execution`);
   
   // Stagger the start of each request by 200ms to avoid rate limit bursts
