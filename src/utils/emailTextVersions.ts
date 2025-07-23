@@ -4,7 +4,7 @@ export function generatePlainTextEmail(formattedEmail: string): string {
   const subject = subjectMatch ? subjectMatch[1] : '';
   
   // Extract body content after subject
-  const bodyMatch = formattedEmail.match(/Subject:.+?\n+(.+)/is);
+  const bodyMatch = formattedEmail.match(/Subject:.+?\n+([\s\S]+)/i);
   const body = bodyMatch ? bodyMatch[1] : formattedEmail;
   
   // Convert formatted text to plain
