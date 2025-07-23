@@ -17,6 +17,11 @@ interface EvaluationResultsProps {
 export default function EvaluationResults({ results }: EvaluationResultsProps) {      
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
+  // Debug logging - only log when we have all results
+  if (results.filter(r => r).length === results.length && results.length > 0) {
+    console.log('Final results:', results.map(r => r ? { category: r.category, hasContent: !!r.content } : 'NULL'));
+  }
+  
   // Find key results for SMS generation
   const emailResult = results.find(r => r && r.category === 'Email After Interview, Same Day');
   const impactfulResult = results.find(r => r && (r.category.includes('"') || r.category.includes('That ') || r.category.includes('When ')));
@@ -431,11 +436,12 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           // First, let's clean up any markdown bold markers that might be causing duplication
           processedContent = processedContent.replace(/\*\*(.*?)\*\*/g, '$1');
           
-          // Parse the content to extract the quote, timestamp, and explanation
-          const lines = processedContent.split('\n').filter(line => line.trim());
+          // Parse the content - keep ALL lines, don't filter empty ones for better formatting
+          const allLines = processedContent.split('\n');
           
           // Find the quote line (contains 💫 and quotes)
-          let quoteLine = lines.find(line => line.includes('💫') && line.includes('"'));
+          const quoteIndex = allLines.findIndex(line => line.includes('💫') && line.includes('"'));
+          let quoteLine = quoteIndex >= 0 ? allLines[quoteIndex] : null;
           
           // Clean the quote - remove extra emoji
           if (quoteLine) {
@@ -443,25 +449,14 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             quoteLine = quoteLine.trim();
           }
           
-          // Find the timestamp/description line
-          let timestampLine = null;
-          let explanationLines = [];
-          
-          // Process remaining lines after quote
-          const quoteIndex = quoteLine ? lines.indexOf(quoteLine) : -1;
-          const remainingLines = quoteIndex >= 0 ? lines.slice(quoteIndex + 1) : lines;
-          
-          // Look for timestamp line and collect explanation
-          for (const line of remainingLines) {
-            if (line.match(/^\[[\d:]+\]/) && !timestampLine) {
-              timestampLine = line;
-            } else if (line.toLowerCase().includes('this moment') || 
-                      line.toLowerCase().includes('this quote') ||
-                      line.toLowerCase().includes('the advisor') ||
-                      line.trim().startsWith('•') ||
-                      line.trim().startsWith('-')) {
-              explanationLines.push(line);
-            }
+          // Everything after the quote is the explanation (including timestamp and all text)
+          let explanationContent = '';
+          if (quoteIndex >= 0 && quoteIndex < allLines.length - 1) {
+            // Get all lines after the quote, preserving formatting
+            explanationContent = allLines.slice(quoteIndex + 1).join('\n').trim();
+          } else if (!quoteLine) {
+            // If no quote found, treat entire content as explanation
+            explanationContent = processedContent;
           }
           
           return (
@@ -497,27 +492,102 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
                     </p>
                   </div>
                 )}
-                {timestampLine && (
-                  <p className="text-gray-700">
-                    {timestampLine}
-                  </p>
-                )}
-                {explanationLines.length > 0 && (
-                  <div className="space-y-2">
-                    {explanationLines.map((line, i) => {
-                      // Check if this line starts a bullet point
-                      if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
-                        return (
-                          <p key={i} className="text-gray-700 ml-4">
-                            • {line.replace(/^[-•]\s*/, '').trim()}
-                          </p>
-                        );
-                      }
-                      return <p key={i} className="text-gray-700">{line}</p>;
-                    })}
+                {explanationContent && (
+                  <div className="prose prose-gray max-w-none">
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ children }: { children?: React.ReactNode }) => (
+                          <p className="text-gray-700 mb-3">{children}</p>
+                        ),
+                        ul: ({ children }: { children?: React.ReactNode }) => (
+                          <ul className="list-disc list-inside space-y-1 text-gray-700">{children}</ul>
+                        ),
+                        li: ({ children }: { children?: React.ReactNode }) => (
+                          <li className="text-gray-700">{children}</li>
+                        ),
+                      }}
+                    >
+                      {explanationContent}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>
+            </div>
+          );
+        }
+        
+        // Special handling for Enrollment Likelihood
+        const isEnrollmentLikelihood = result.category === 'Enrollment Likelihood';
+        if (isEnrollmentLikelihood) {
+          // Parse the enrollment data
+          const likelihoodMatch = result.content.match(/LIKELIHOOD:\s*(\d+)/);
+          const actionMatch = result.content.match(/ACTION:\s*(.+?)(?:\n|$)/s);
+          
+          const likelihood = likelihoodMatch ? parseInt(likelihoodMatch[1]) : 0;
+          const action = actionMatch ? actionMatch[1].trim() : '';
+          
+          // Determine color based on likelihood
+          let barColor = 'bg-red-500'; // 0-39%
+          let bgColor = 'bg-red-50';
+          if (likelihood >= 70) {
+            barColor = 'bg-green-500';
+            bgColor = 'bg-green-50';
+          } else if (likelihood >= 40) {
+            barColor = 'bg-yellow-500';
+            bgColor = 'bg-yellow-50';
+          }
+          
+          return (
+            <div 
+              key={index} 
+              className={`rounded-xl shadow-lg p-6 animate-fade-in ${bgColor}`}
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="font-bold text-gray-900 text-xl flex items-center">
+                  <span className="mr-2">📊</span>
+                  Enrollment Likelihood
+                </h2>
+                <button
+                  onClick={() => copyToClipboard(result.content, index)}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                  title="Copy to clipboard"
+                >
+                  {copiedIndex === index ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-2xl font-bold text-gray-900">{likelihood}%</span>
+                  <span className="text-sm text-gray-600">
+                    {likelihood >= 70 ? 'High' : likelihood >= 40 ? 'Moderate' : 'Low'} Likelihood
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                  <div 
+                    className={`h-full ${barColor} transition-all duration-1000 ease-out`}
+                    style={{ width: `${likelihood}%` }}
+                  />
+                </div>
+              </div>
+              
+              {/* Action Item */}
+              {action && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <p className="text-gray-700 flex items-start">
+                    <span className="mr-2 flex-shrink-0">💡</span>
+                    <span className="font-medium">Next Best Action:</span>
+                  </p>
+                  <p className="text-gray-700 mt-1 ml-6">{action}</p>
+                </div>
+              )}
             </div>
           );
         }

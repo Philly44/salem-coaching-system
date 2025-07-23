@@ -570,6 +570,7 @@ export default function Home() {
           { category: 'Title', content: data.title },
           { category: randomPhrase, content: data.impactfulStatement },
           { category: 'Interview Scorecard', content: data.scorecard },
+          { category: 'Enrollment Likelihood', content: data.enrollmentLikelihood },
           { category: 'Talk/Listen Ratio Analysis', content: data.talkListenRatio },
           { category: 'Application Invitation Assessment', content: data.applicationInvitation },
           { category: 'Weekly Growth Plan', content: data.growthPlan },
@@ -578,6 +579,7 @@ export default function Home() {
         ];
         
         console.log('Results before filtering:', resultsArray);
+        console.log('Email content:', data.emailBlast);
         
         // Only filter out truly empty content (not just whitespace)
         const filteredResults = resultsArray.filter(item => {
@@ -648,15 +650,20 @@ export default function Home() {
               } else if (data.type === 'result') {
                 // Store result at its correct index to maintain order
                 setResults(prev => {
-                  // Create array with 8 slots if empty
-                  const newResults = prev.length === 0 ? new Array(8).fill(null) : [...prev];
+                  // Create array with 9 slots if empty (we have 9 evaluations now)
+                  const newResults = prev.length === 0 ? new Array(9).fill(null) : [...prev];
                   
                   // Use the index from the API to maintain correct order
-                  if (data.index !== undefined && data.index < 8) {
+                  if (data.index !== undefined && data.index < 9) {
                     newResults[data.index] = {
                       category: data.category,
                       content: data.content
                     };
+                    
+                    // Log email section specifically
+                    if (data.key === 'emailBlast' || data.category === 'Email After Interview, Same Day') {
+                      console.log(`EMAIL SECTION RECEIVED: index=${data.index}, content length=${data.content?.length}`);
+                    }
                   }
                   
                   // Return array maintaining all positions
@@ -672,13 +679,38 @@ export default function Home() {
                   setShowAnswer(true);
                 }
               } else if (data.type === 'error') {
-                // Error in evaluation category - continue processing other results
-                // Continue processing other results
+                // Error in evaluation category - log it and potentially show placeholder
+                console.error('Evaluation error:', data);
+                
+                // If it's the email section, add a placeholder
+                if (data.key === 'emailBlast' && data.index !== undefined) {
+                  setResults(prev => {
+                    const newResults = prev.length === 0 ? new Array(9).fill(null) : [...prev];
+                    newResults[data.index] = {
+                      category: data.category || 'Email After Interview, Same Day',
+                      content: `Error: ${data.error || 'Failed to generate content'}`
+                    };
+                    return newResults;
+                  });
+                }
               } else if (data.type === 'complete') {
                 // Evaluation complete
                 setProgress(100);
+                
+                // Log completion details
+                if (data.missingKeys && data.missingKeys.length > 0) {
+                  console.error('WARNING: Missing sections after completion:', data.missingKeys);
+                }
+                
                 // Clean up any null entries after completion
-                setResults(prev => prev.filter(Boolean));
+                setResults(prev => {
+                  const filtered = prev.filter(Boolean);
+                  console.log('Final results after completion:', filtered.map(r => ({ 
+                    category: r.category, 
+                    hasContent: !!r.content 
+                  })));
+                  return filtered;
+                });
               } else if (data.error) {
                 throw new Error(data.error);
               }
@@ -710,9 +742,12 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-2xl p-8 mb-8">
             <div className="mb-6">
               <textarea
+                id="interview-transcript"
+                name="interview-transcript"
+                aria-label="Interview transcript"
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
-                placeholder=""
+                placeholder="Paste your interview transcript here..."
                 className="w-full h-64 p-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-gray-50 text-gray-900 placeholder-gray-400"
               />
             </div>
@@ -733,6 +768,7 @@ export default function Home() {
                 alt="Salem Tiger"
                 width={120}
                 height={120}
+                style={{ width: 'auto', height: 'auto' }}
                 className="cursor-pointer transition-opacity duration-1000"
               />
             </button>
@@ -748,6 +784,7 @@ export default function Home() {
                   alt="Loading"
                   width={96}
                   height={96}
+                  style={{ width: 'auto', height: 'auto' }}
                   className="tiger-throb"
                 />
               </div>

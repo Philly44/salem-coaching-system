@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
           '01_title prompt.txt',
           '02_most impactful statement prompt.txt',
           '04_interview scorecard prompt.txt',
+          '10_enrollment_likelihood_prompt.txt',
           '09_talk time.txt',
           '05_application invitation assessment prompt.txt',
           '06_weekly growth plan prompt.txt',
@@ -165,12 +166,19 @@ export async function POST(request: NextRequest) {
           { key: 'title', name: 'Title', useHaiku: true },
           { key: 'impactfulStatement', name: randomPhrase, useHaiku: false },
           { key: 'scorecard', name: 'Interview Scorecard', useHaiku: false },
+          { key: 'enrollmentLikelihood', name: 'Enrollment Likelihood', useHaiku: true },
           { key: 'talkListenRatio', name: 'Talk/Listen Ratio Analysis', useHaiku: false },
           { key: 'applicationInvitation', name: 'Application Invitation Assessment', useHaiku: true },
           { key: 'growthPlan', name: 'Weekly Growth Plan', useHaiku: false },
           { key: 'coachingNotes', name: 'Coaching Notes', useHaiku: false },
           { key: 'emailBlast', name: 'Email After Interview, Same Day', useHaiku: false },
         ];
+        
+        console.log('EVALUATIONS SETUP:', {
+          totalEvaluations: evaluations.length,
+          emailIndex: evaluations.findIndex(e => e.key === 'emailBlast'),
+          allKeys: evaluations.map(e => e.key)
+        });
 
         const results: Partial<EvaluationResults> = {};
         let completedCount = 0;
@@ -182,147 +190,197 @@ export async function POST(request: NextRequest) {
           total: evaluations.length
         })}\n\n`));
 
-        // Process evaluations with staggered starts
-        const promises = evaluations.map((evaluation, index) => {
-          return new Promise(async (resolve) => {
-            // Smart staggering to prevent 529 errors while maintaining responsiveness
-            const isHighToken = ['growthPlan', 'coachingNotes', 'emailBlast'].includes(evaluation.key);
+        // Process evaluation function
+        const processEvaluation = async (evaluation: typeof evaluations[0], index: number): Promise<void> => {
+          try {
+            const prompt = prompts[index];
+            const model = evaluation.useHaiku
+              ? apiConfig.models.haiku
+              : apiConfig.models.sonnet;
             
-            // Progressive staggering with increased delays for production stability
-            let stagger: number;
-            if (index < 5) {
-              // First 5 (low-token) requests: minimal delay
-              stagger = index * 100; // 0ms, 100ms, 200ms, 300ms, 400ms
-            } else {
-              // High-token requests: increased spacing to prevent 529 errors
-              stagger = 500 + ((index - 5) * 1000); // 500ms, 1500ms, 2500ms
+            const isGrowthPlan = evaluation.key === 'growthPlan';
+            const isCoachingNotes = evaluation.key === 'coachingNotes';
+            const isEmail = evaluation.key === 'emailBlast';
+            
+            // Give more tokens to longer outputs
+            let maxTokens: number = apiConfig.tokenLimits.default;
+            if (!evaluation.useHaiku) {
+              if (isGrowthPlan) {
+                maxTokens = apiConfig.tokenLimits.growthPlan; // 8192 tokens
+              } else if (isCoachingNotes) {
+                maxTokens = apiConfig.tokenLimits.coachingNotes; // 8192 tokens
+              } else if (isEmail) {
+                maxTokens = apiConfig.tokenLimits.email; // 8192 tokens
+              }
             }
             
-            await new Promise(r => setTimeout(r, stagger));
+            // Wait for token bucket capacity with timeout
+            const tokenTimeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Token bucket timeout')), 10000)
+            );
             
             try {
-              const prompt = prompts[index];
-              const model = evaluation.useHaiku
-                ? apiConfig.models.haiku
-                : apiConfig.models.sonnet;
-              
-              const isGrowthPlan = evaluation.key === 'growthPlan';
-              const isCoachingNotes = evaluation.key === 'coachingNotes';
-              const isEmail = evaluation.key === 'emailBlast';
-              
-              // Give more tokens to longer outputs
-              let maxTokens: number = apiConfig.tokenLimits.default;
-              if (!evaluation.useHaiku) {
-                if (isGrowthPlan) {
-                  maxTokens = apiConfig.tokenLimits.growthPlan; // 8192 tokens
-                } else if (isCoachingNotes) {
-                  maxTokens = apiConfig.tokenLimits.coachingNotes; // 8192 tokens
-                } else if (isEmail) {
-                  maxTokens = apiConfig.tokenLimits.email; // 8192 tokens
-                }
-              }
-              
-              // Wait for token bucket capacity with timeout
-              const tokenTimeout = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Token bucket timeout')), 10000)
-              );
-              
-              try {
-                await Promise.race([
-                  tokenBucket.waitForTokens(maxTokens),
-                  tokenTimeout
-                ]);
-              } catch (err) {
-                console.error(`Token bucket timeout for ${evaluation.name}`);
-                // Continue anyway - let the API rate limit us if needed
-              }
-              
-              const needsExtendedTokens = (isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku;
-              
-              const response = await retryWithBackoff(() => {
-                const messageParams = {
-                  model,
-                  max_tokens: maxTokens, // Use the maxTokens we calculated above
-                  messages: [
-                    {
-                      role: 'user' as const,
-                      content: `${prompt}\n\nTranscript:\n${sanitizedTranscript}`
-                    }
-                  ]
-                };
-                
-                const options = needsExtendedTokens ? {
-                  headers: apiConfig.beta.headers
-                } : undefined;
-                
-                return anthropic.messages.create(messageParams, options);
-              }, apiConfig.retry.maxRetries, apiConfig.retry.baseDelay, index, needsExtendedTokens);
-
-              if (response.content && response.content[0] && response.content[0].type === 'text') {
-                const rawText = response.content[0].text;
-                let cleanedText: string;
-                
-                // Skip preamble removal for email to prevent content deletion
-                if (evaluation.key === 'emailBlast') {
-                  cleanedText = rawText.trim();
-                  // Ensure email starts with Subject:
-                  if (!cleanedText.includes('Subject:')) {
-                    cleanedText = `Subject: Your Path Forward at Salem University\n\n${cleanedText}`;
-                  } else if (!cleanedText.startsWith('Subject:')) {
-                    const subjectIndex = cleanedText.indexOf('Subject:');
-                    if (subjectIndex > 0) {
-                      cleanedText = cleanedText.substring(subjectIndex);
-                    }
-                  }
-                } else {
-                  // Normal preamble removal for other evaluations
-                  cleanedText = removePreamble(rawText);
-                  
-                  // Check for truncated content
-                  if (evaluation.key === 'growthPlan' && !cleanedText.includes('Strategy #2')) {
-                    throw new Error('Growth Plan response was truncated. Retrying...');
-                  }
-                }
-                
-                results[evaluation.key as keyof EvaluationResults] = cleanedText;
-                completedCount++;
-                
-                // Send result as it completes
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                  type: 'result',
-                  category: evaluation.name,
-                  content: cleanedText,
-                  completed: completedCount,
-                  total: evaluations.length,
-                  index: index
-                })}\n\n`));
-              }
-              
-              resolve(true);
-            } catch (error) {
-              console.error(`Error processing ${evaluation.name}:`, error);
-              
-              // Send error for this specific evaluation
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                type: 'error',
-                category: evaluation.name,
-                error: error instanceof Error ? error.message : 'Unknown error'
-              })}\n\n`));
-              
-              resolve(false);
+              await Promise.race([
+                tokenBucket.waitForTokens(maxTokens),
+                tokenTimeout
+              ]);
+            } catch (err) {
+              console.error(`Token bucket timeout for ${evaluation.name}`);
+              // Continue anyway - let the API rate limit us if needed
             }
+            
+            const needsExtendedTokens = (isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku;
+            
+            const response = await retryWithBackoff(() => {
+              const messageParams = {
+                model,
+                max_tokens: maxTokens, // Use the maxTokens we calculated above
+                messages: [
+                  {
+                    role: 'user' as const,
+                    content: `${prompt}\n\nTranscript:\n${sanitizedTranscript}`
+                  }
+                ]
+              };
+              
+              const options = needsExtendedTokens ? {
+                headers: apiConfig.beta.headers
+              } : undefined;
+              
+              return anthropic.messages.create(messageParams, options);
+            }, apiConfig.retry.maxRetries, apiConfig.retry.baseDelay, index, needsExtendedTokens);
+
+            if (response.content && response.content[0] && response.content[0].type === 'text') {
+              const rawText = response.content[0].text;
+              let cleanedText: string;
+              
+              // Skip preamble removal for email to prevent content deletion
+              if (evaluation.key === 'emailBlast') {
+                cleanedText = rawText.trim();
+                // Ensure email starts with Subject:
+                if (!cleanedText.includes('Subject:')) {
+                  cleanedText = `Subject: Your Path Forward at Salem University\n\n${cleanedText}`;
+                } else if (!cleanedText.startsWith('Subject:')) {
+                  const subjectIndex = cleanedText.indexOf('Subject:');
+                  if (subjectIndex > 0) {
+                    cleanedText = cleanedText.substring(subjectIndex);
+                  }
+                }
+              } else {
+                // Normal preamble removal for other evaluations
+                cleanedText = removePreamble(rawText);
+                
+                // Check for truncated content
+                if (evaluation.key === 'growthPlan' && !cleanedText.includes('Strategy #2')) {
+                  throw new Error('Growth Plan response was truncated. Retrying...');
+                }
+              }
+              
+              results[evaluation.key as keyof EvaluationResults] = cleanedText;
+              completedCount++;
+              
+              // Special logging for email section
+              if (evaluation.key === 'emailBlast') {
+                console.log('EMAIL EVALUATION SUCCESS:', {
+                  contentLength: cleanedText.length,
+                  preview: cleanedText.substring(0, 100),
+                  index: index,
+                  completedCount: completedCount
+                });
+              }
+              
+              // Send result as it completes
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: 'result',
+                category: evaluation.name,
+                content: cleanedText,
+                completed: completedCount,
+                total: evaluations.length,
+                index: index,
+                key: evaluation.key
+              })}\n\n`));
+            }
+          } catch (error) {
+            console.error(`Error processing ${evaluation.name}:`, error);
+            
+            // Special logging for email failures
+            if (evaluation.key === 'emailBlast') {
+              console.error('EMAIL EVALUATION FAILED:', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                attempt: 'processEvaluation',
+                index: index
+              });
+            }
+            
+            // Send error for this specific evaluation
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'error',
+              category: evaluation.name,
+              error: error instanceof Error ? error.message : 'Unknown error',
+              key: evaluation.key,
+              index: index
+            })}\n\n`));
+          }
+        };
+
+        // Split evaluations into groups
+        const lowRisk = evaluations.slice(0, 6); // First 6 can run with minimal delays
+        const highRisk = evaluations.slice(6); // Last 3 need sequential processing
+
+        // Process low-risk evaluations with staggered starts
+        const lowRiskPromises = lowRisk.map((item, idx) => {
+          return new Promise<void>(async (resolve) => {
+            await new Promise(r => setTimeout(r, idx * 100)); // Small stagger
+            await processEvaluation(item, idx);
+            resolve();
           });
         });
 
-        // Wait for all evaluations to complete
-        await Promise.all(promises);
+        // Wait for low-risk evaluations to complete
+        await Promise.all(lowRiskPromises);
 
-        // Send completion event
+        // Process high-risk evaluations sequentially with dynamic delays
+        for (let i = 0; i < highRisk.length; i++) {
+          const item = highRisk[i];
+          const originalIndex = i + 6;
+          
+          // Wait a bit before starting next high-risk evaluation
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+          // Process the evaluation
+          await processEvaluation(item, originalIndex);
+          
+          // If this was email and it failed, retry with extra delay
+          if (item.key === 'emailBlast' && !results.emailBlast) {
+            console.log('Email evaluation failed, retrying after 3s delay...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await processEvaluation(item, originalIndex);
+            
+            // If still failed after retry, send a placeholder
+            if (!results.emailBlast) {
+              console.error('Email evaluation failed after retry, sending placeholder');
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: 'result',
+                category: 'Email After Interview, Same Day',
+                content: 'Error: Email generation failed due to API limits. Please try again in a few moments.',
+                completed: completedCount,
+                total: evaluations.length,
+                index: originalIndex,
+                key: 'emailBlast'
+              })}\n\n`));
+            }
+          }
+        }
+
+        // Send completion event with all results
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({
           type: 'complete',
-          total: completedCount
+          total: completedCount,
+          results: results,
+          missingKeys: evaluations.filter((e, i) => !results[e.key as keyof EvaluationResults]).map(e => e.key)
         })}\n\n`));
-
 
         controller.close();
       } catch (error) {

@@ -17,30 +17,72 @@ type APIError = {
   headers?: Headers;
 };
 
-// Helper function to process requests with staggered parallel execution
+// Helper function to process requests with optimized parallel execution
 async function processParallel(
-  promises: (() => Promise<any>)[]
+  promises: (() => Promise<any>)[],
+  modelTypes?: ('haiku' | 'sonnet')[]
 ): Promise<any[]> {
-  console.log(`Starting ${promises.length} API calls with staggered execution`);
+  console.log(`Starting ${promises.length} API calls with optimized parallel execution`);
   
-  // Stagger the start of each request by 200ms to avoid rate limit bursts
-  const staggeredPromises = promises.map((fn, index) => {
-    return new Promise<any>((resolve, reject) => {
+  // Group requests by model type for optimal parallelization
+  const groups = {
+    haiku: [] as { index: number; fn: () => Promise<any> }[],
+    sonnet: [] as { index: number; fn: () => Promise<any> }[]
+  };
+  
+  // If model types provided, group by model
+  if (modelTypes && modelTypes.length === promises.length) {
+    promises.forEach((fn, index) => {
+      groups[modelTypes[index]].push({ index, fn });
+    });
+  } else {
+    // Fallback to linear staggering if no model info
+    promises.forEach((fn, index) => {
+      groups.sonnet.push({ index, fn });
+    });
+  }
+  
+  const allPromises: { index: number; promise: Promise<any> }[] = [];
+  
+  // Start Haiku requests immediately (they're fast and cheap)
+  groups.haiku.forEach(({ index, fn }, groupIndex) => {
+    const promise = new Promise<any>((resolve, reject) => {
       setTimeout(async () => {
         try {
-          console.log(`Starting API call ${index}`);
+          console.log(`Starting Haiku API call ${index}`);
           const result = await fn();
-          console.log(`Completed API call ${index}`);
+          console.log(`Completed Haiku API call ${index}`);
           resolve(result);
         } catch (error) {
           reject(error);
         }
-      }, index * 200); // 200ms delay between each start
+      }, groupIndex * 100); // 100ms stagger for Haiku to be safer
     });
+    allPromises.push({ index, promise });
   });
   
-  // Process all staggered requests
-  const results = await Promise.allSettled(staggeredPromises);
+  // Start Sonnet requests with more spacing
+  groups.sonnet.forEach(({ index, fn }, groupIndex) => {
+    const promise = new Promise<any>((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          console.log(`Starting Sonnet API call ${index}`);
+          const result = await fn();
+          console.log(`Completed Sonnet API call ${index}`);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      }, 500 + (groupIndex * 500)); // Start after 500ms, then 500ms between each for safety
+    });
+    allPromises.push({ index, promise });
+  });
+  
+  // Sort by original index to maintain order
+  allPromises.sort((a, b) => a.index - b.index);
+  
+  // Process all requests
+  const results = await Promise.allSettled(allPromises.map(p => p.promise));
   
   // Extract successful results and handle failures
   return results.map((result, index) => {
@@ -124,6 +166,7 @@ export async function POST(request: NextRequest) {
       '01_title prompt.txt',
       '02_most impactful statement prompt.txt',
       '04_interview scorecard prompt.txt',
+      '10_enrollment_likelihood_prompt.txt',  // New enrollment prediction
       '09_talk time.txt',
       '05_application invitation assessment prompt.txt',
       '06_weekly growth plan prompt.txt',
@@ -161,8 +204,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Define which prompts use Haiku (faster/cheaper) vs Sonnet
-    const haikuIndices = [0, 4]; // title, application invitation
-    // Email (index 7) will use Sonnet for better quality
+    const haikuIndices = [0, 3, 5]; // title, enrollment likelihood, application invitation
+    // Email (index 8) will use Sonnet for better quality
 
     // Create all evaluation functions (not executing yet)
     const evaluationFunctions = prompts.map((prompt, index) => {
@@ -174,9 +217,9 @@ export async function POST(request: NextRequest) {
         
         // Use appropriate max_tokens based on model
         // Weekly Growth Plan needs more tokens for detailed strategies
-        const isGrowthPlan = index === 5; // Index 5 is '06_weekly growth plan prompt.txt'
-        const isCoachingNotes = index === 6; // Index 6 is '07_coaching notes prompt.txt'
-        const isEmail = index === 7; // Index 7 is '08_email_blast_prompt.txt'
+        const isGrowthPlan = index === 6; // Index 6 is '06_weekly growth plan prompt.txt'
+        const isCoachingNotes = index === 7; // Index 7 is '07_coaching notes prompt.txt'
+        const isEmail = index === 8; // Index 8 is '08_email_blast_prompt.txt'
         
         // Give more tokens to longer outputs
         let maxTokens: number = apiConfig.tokenLimits.default;
@@ -213,10 +256,15 @@ export async function POST(request: NextRequest) {
     // Execute evaluations in parallel for maximum speed
     const startTime = Date.now();
     
-    // Process all evaluations in parallel
+    // Create model type array for optimized parallel execution
+    const modelTypes = prompts.map((_, index) => 
+      haikuIndices.includes(index) ? 'haiku' : 'sonnet'
+    ) as ('haiku' | 'sonnet')[];
+    
+    // Process all evaluations in parallel with model-aware optimization
     let responses;
     try {
-      responses = await processParallel(evaluationFunctions);
+      responses = await processParallel(evaluationFunctions, modelTypes);
     } catch (error) {
       console.error('Error in processParallel:', error);
       throw error;
@@ -225,10 +273,10 @@ export async function POST(request: NextRequest) {
     const endTime = Date.now();
     console.log(`All evaluations completed in ${endTime - startTime}ms`);
     
-    // CRITICAL: Verify we have all 8 responses
-    if (responses.length !== 8) {
-      console.error(`CRITICAL: Expected 8 responses, got ${responses.length}`);
-      throw new Error(`Incomplete responses: expected 8, got ${responses.length}`);
+    // CRITICAL: Verify we have all 9 responses
+    if (responses.length !== 9) {
+      console.error(`CRITICAL: Expected 9 responses, got ${responses.length}`);
+      throw new Error(`Incomplete responses: expected 9, got ${responses.length}`);
     }
 
     // Extract content from responses
@@ -236,6 +284,7 @@ export async function POST(request: NextRequest) {
       title: '',
       impactfulStatement: '',
       scorecard: '',
+      enrollmentLikelihood: '',
       talkListenRatio: '',
       applicationInvitation: '',
       growthPlan: '',
@@ -248,6 +297,7 @@ export async function POST(request: NextRequest) {
       'title',
       'impactfulStatement',
       'scorecard',
+      'enrollmentLikelihood',
       'talkListenRatio',
       'applicationInvitation',
       'growthPlan',

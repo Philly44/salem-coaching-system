@@ -9,6 +9,7 @@ export interface EvaluationResults {
   title: string;
   impactfulStatement: string;
   scorecard: string;
+  enrollmentLikelihood: string;
   talkListenRatio: string;
   applicationInvitation: string;
   growthPlan: string;
