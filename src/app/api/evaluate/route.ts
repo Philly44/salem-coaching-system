@@ -25,7 +25,7 @@ async function processParallel(
   
   // Stagger the start of each request by 200ms to avoid rate limit bursts
   const staggeredPromises = promises.map((fn, index) => {
-    return new Promise<T>((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       setTimeout(async () => {
         try {
           console.log(`Starting API call ${index}`);
