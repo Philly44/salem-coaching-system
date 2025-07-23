@@ -73,6 +73,7 @@ export function removePreamble(text: string): string {
   
   // For other sections, check for their expected starts
   const expectedStarts = [
+    'Subject:',  // Email subject line - MUST BE FIRST
     '# Title:',
     '**Title:**',
     '# Most Impactful Statement',

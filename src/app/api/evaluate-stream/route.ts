@@ -260,24 +260,27 @@ export async function POST(request: NextRequest) {
 
               if (response.content && response.content[0] && response.content[0].type === 'text') {
                 const rawText = response.content[0].text;
-                let cleanedText = removePreamble(rawText);
+                let cleanedText: string;
                 
-                // Check for truncated content
-                if (evaluation.key === 'growthPlan' && !cleanedText.includes('Strategy #2')) {
-                  throw new Error('Growth Plan response was truncated. Retrying...');
-                }
-                
+                // Skip preamble removal for email to prevent content deletion
                 if (evaluation.key === 'emailBlast') {
-                  // More robust email handling
+                  cleanedText = rawText.trim();
+                  // Ensure email starts with Subject:
                   if (!cleanedText.includes('Subject:')) {
-                    // If no subject found, create a basic email structure
                     cleanedText = `Subject: Your Path Forward at Salem University\n\n${cleanedText}`;
                   } else if (!cleanedText.startsWith('Subject:')) {
-                    // Extract from wherever Subject: appears
                     const subjectIndex = cleanedText.indexOf('Subject:');
                     if (subjectIndex > 0) {
                       cleanedText = cleanedText.substring(subjectIndex);
                     }
+                  }
+                } else {
+                  // Normal preamble removal for other evaluations
+                  cleanedText = removePreamble(rawText);
+                  
+                  // Check for truncated content
+                  if (evaluation.key === 'growthPlan' && !cleanedText.includes('Strategy #2')) {
+                    throw new Error('Growth Plan response was truncated. Retrying...');
                   }
                 }
                 
