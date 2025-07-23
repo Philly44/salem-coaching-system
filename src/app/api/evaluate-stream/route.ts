@@ -188,14 +188,14 @@ export async function POST(request: NextRequest) {
             // Smart staggering to prevent 529 errors while maintaining responsiveness
             const isHighToken = ['growthPlan', 'coachingNotes', 'emailBlast'].includes(evaluation.key);
             
-            // Progressive staggering that doesn't penalize later evaluations
+            // Progressive staggering with increased delays for production stability
             let stagger: number;
             if (index < 5) {
               // First 5 (low-token) requests: minimal delay
-              stagger = index * 50; // 0ms, 50ms, 100ms, 150ms, 200ms
+              stagger = index * 100; // 0ms, 100ms, 200ms, 300ms, 400ms
             } else {
-              // High-token requests: moderate spacing
-              stagger = 250 + ((index - 5) * 500); // 250ms, 750ms, 1250ms
+              // High-token requests: increased spacing to prevent 529 errors
+              stagger = 500 + ((index - 5) * 1000); // 500ms, 1500ms, 2500ms
             }
             
             await new Promise(r => setTimeout(r, stagger));
@@ -252,7 +252,6 @@ export async function POST(request: NextRequest) {
                 
                 // Check for truncated content
                 if (evaluation.key === 'growthPlan' && !cleanedText.includes('Strategy #2')) {
-                  console.warn(`Growth Plan appears truncated - missing Strategy #2`);
                   throw new Error('Growth Plan response was truncated. Retrying...');
                 }
                 
@@ -302,11 +301,6 @@ export async function POST(request: NextRequest) {
           total: completedCount
         })}\n\n`));
 
-        // Log successful completion
-        console.log('Evaluation stream complete:', {
-          completedCount,
-          totalEvaluations: evaluations.length
-        });
 
         controller.close();
       } catch (error) {
