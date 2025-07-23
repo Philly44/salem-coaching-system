@@ -43,10 +43,10 @@ export async function POST(request: NextRequest) {
         // Validate sanitization
         const validation = validateSanitization(sanitizedTranscript);
         if (!validation.isValid) {
-          console.error('Sanitization validation failed:', validation.errors);
+          console.error('Sanitization validation failed:', validation.issues);
           // Log the issue but continue with processing
           console.log('Sanitization warning:', {
-            errors: validation.errors,
+            errors: validation.issues,
             stats: getSanitizationStats(transcript, sanitizedTranscript)
           });
         }
