@@ -7,7 +7,8 @@ export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 5,
   baseDelay: number = 1000,
-  promptIndex?: number
+  promptIndex?: number,
+  isHighToken: boolean = false
 ): Promise<T> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -27,8 +28,14 @@ export async function retryWithBackoff<T>(
       
       // Check if it's a 529 (overloaded) or 429 (rate limit) error
       if ((apiError?.status === 529 || apiError?.status === 429) && attempt < maxRetries - 1) {
-        // Use shorter delays for parallel requests
-        let delay = baseDelay + (attempt * 500); // Linear backoff instead of exponential
+        // Use exponential backoff with jitter for better distribution
+        const exponentialDelay = baseDelay * Math.pow(1.5, attempt);
+        const jitter = Math.random() * 500; // 0-500ms random jitter
+        
+        // High-token requests get moderate additional delay
+        const tokenPenalty = isHighToken ? 500 * attempt : 0;
+        
+        let delay = exponentialDelay + jitter + tokenPenalty;
         if (apiError?.status === 429 && apiError?.headers?.get) {
           const retryAfter = apiError.headers.get('retry-after');
           if (retryAfter) {

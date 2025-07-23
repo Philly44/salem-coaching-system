@@ -6,6 +6,7 @@ import { join } from 'path';
 import { EvaluationResults } from '@/types/evaluation';
 import { sanitizeTranscript, validateSanitization, getSanitizationStats } from '@/utils/sanitizeTranscript';
 import { removePreamble, retryWithBackoff, apiConfig } from '@/lib/api-common';
+import { tokenBucket } from '@/lib/api-common/token-bucket';
 
 // APIError type for compatibility with existing code
 type APIError = {
@@ -184,8 +185,20 @@ export async function POST(request: NextRequest) {
         // Process evaluations with staggered starts
         const promises = evaluations.map((evaluation, index) => {
           return new Promise(async (resolve) => {
-            // Stagger starts by 200ms to avoid rate limits
-            await new Promise(r => setTimeout(r, index * 200));
+            // Smart staggering to prevent 529 errors while maintaining responsiveness
+            const isHighToken = ['growthPlan', 'coachingNotes', 'emailBlast'].includes(evaluation.key);
+            
+            // Progressive staggering that doesn't penalize later evaluations
+            let stagger: number;
+            if (index < 5) {
+              // First 5 (low-token) requests: minimal delay
+              stagger = index * 50; // 0ms, 50ms, 100ms, 150ms, 200ms
+            } else {
+              // High-token requests: moderate spacing
+              stagger = 250 + ((index - 5) * 500); // 250ms, 750ms, 1250ms
+            }
+            
+            await new Promise(r => setTimeout(r, stagger));
             
             try {
               const prompt = prompts[index];
@@ -199,9 +212,20 @@ export async function POST(request: NextRequest) {
               
               // Give more tokens to longer outputs
               let maxTokens: number = apiConfig.tokenLimits.default;
-              if ((isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku) {
-                maxTokens = apiConfig.tokenLimits.growthPlan; // 8192 tokens
+              if (!evaluation.useHaiku) {
+                if (isGrowthPlan) {
+                  maxTokens = apiConfig.tokenLimits.growthPlan; // 8192 tokens
+                } else if (isCoachingNotes) {
+                  maxTokens = apiConfig.tokenLimits.coachingNotes; // 8192 tokens
+                } else if (isEmail) {
+                  maxTokens = apiConfig.tokenLimits.email; // 8192 tokens
+                }
               }
+              
+              // Wait for token bucket capacity
+              await tokenBucket.waitForTokens(maxTokens);
+              
+              const needsExtendedTokens = (isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku;
               
               const response = await retryWithBackoff(() => {
                 const messageParams = {
@@ -215,17 +239,22 @@ export async function POST(request: NextRequest) {
                   ]
                 };
                 
-                const needsExtendedTokens = (isGrowthPlan || isCoachingNotes || isEmail) && !evaluation.useHaiku;
                 const options = needsExtendedTokens ? {
                   headers: apiConfig.beta.headers
                 } : undefined;
                 
                 return anthropic.messages.create(messageParams, options);
-              }, apiConfig.retry.maxRetries, apiConfig.retry.baseDelay, index);
+              }, apiConfig.retry.maxRetries, apiConfig.retry.baseDelay, index, needsExtendedTokens);
 
               if (response.content && response.content[0] && response.content[0].type === 'text') {
                 const rawText = response.content[0].text;
                 let cleanedText = removePreamble(rawText);
+                
+                // Check for truncated content
+                if (evaluation.key === 'growthPlan' && !cleanedText.includes('Strategy #2')) {
+                  console.warn(`Growth Plan appears truncated - missing Strategy #2`);
+                  throw new Error('Growth Plan response was truncated. Retrying...');
+                }
                 
                 if (evaluation.key === 'emailBlast' && !cleanedText.startsWith('Subject:')) {
                   const subjectIndex = cleanedText.indexOf('Subject:');

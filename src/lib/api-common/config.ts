@@ -6,6 +6,8 @@ export const apiConfig = {
   tokenLimits: {
     default: 4096,
     growthPlan: 8192,
+    email: 8192,
+    coachingNotes: 8192,
   },
   retry: {
     maxRetries: 5,

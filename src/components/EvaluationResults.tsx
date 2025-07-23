@@ -4,12 +4,10 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, Check } from 'lucide-react';
-
-interface EvaluationResult {
-  category: string;
-  content: string;
-}
+import { Copy, Check, Mail, MessageSquare, FileText } from 'lucide-react';
+import { generateSMSFromResults, generateThreePartSMS } from '@/utils/smsGenerator';
+import { generatePlainTextEmail } from '@/utils/emailTextVersions';
+import type { EvaluationResult } from '@/types/evaluation';
 
 interface EvaluationResultsProps {
   results: EvaluationResult[];
@@ -18,6 +16,11 @@ interface EvaluationResultsProps {
 
 export default function EvaluationResults({ results }: EvaluationResultsProps) {      
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  
+  // Find key results for SMS generation
+  const emailResult = results.find(r => r && r.category === 'Email After Interview, Same Day');
+  const impactfulResult = results.find(r => r && (r.category.includes('"') || r.category.includes('That ') || r.category.includes('When ')));
+  const titleResult = results.find(r => r && r.category === 'Title');
 
   const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -229,20 +232,11 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             }
           }
           
-          // Debug logging to identify truncation
-          console.log('Weekly Growth Plan - Full content length:', fullContent.length);
-          console.log('Strategy 1 length:', strategy1Content.length);
-          console.log('Strategy 2 length:', strategy2Content.length);
           
           // Clean up any trailing markdown artifacts
           strategy1Content = strategy1Content.replace(/\*+\s*$/, '').trim();
           strategy2Content = strategy2Content.replace(/\*+\s*$/, '').trim();
           
-          // Check if content appears truncated
-          const lastChars = strategy2Content.slice(-50);
-          if (!lastChars.match(/[.!?]\s*$/)) {
-            console.warn('Strategy 2 may be truncated - does not end with punctuation:', lastChars);
-          }
           
           return (
             <div key={index}>
@@ -309,23 +303,122 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
         // Check if this is the follow-up email
         const isFollowUpEmail = result.category === 'Email After Interview, Same Day';
         
+        // Special handling for email with multiple copy options
+        if (isFollowUpEmail) {
+          // Generate SMS from available data
+          const smsMessage = generateSMSFromResults(
+            result.content,
+            impactfulResult?.content || '',
+            titleResult?.content || ''
+          );
+          const threePartSMS = generateThreePartSMS(
+            result.content,
+            impactfulResult?.content || '',
+            titleResult?.content || ''
+          );
+          const plainTextEmail = generatePlainTextEmail(cleanedContent);
+          
+          return (
+            <div 
+              key={index} 
+              className="rounded-xl shadow-lg p-6 animate-fade-in bg-green-100 shadow-green-200/30"
+              style={{ 
+                animationDelay: `${index * 100}ms`,
+                boxShadow: '0 2px 10px 0 rgba(34, 197, 94, 0.15)'
+              }}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="font-bold text-gray-900 text-2xl">
+                  Momentum Email
+                </h2>
+                <button
+                  onClick={() => copyToClipboard(result.content, index)}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                  title="Copy to clipboard"
+                >
+                  {copiedIndex === index ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Email Content - Keep original formatting */}
+              <div className="prose prose-gray max-w-none mb-6">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({children}) => <p className="mb-4 leading-relaxed">{children}</p>,
+                    br: () => <br className="my-2" />
+                  }}
+                >
+                  {/* Convert single line breaks to double for proper paragraph spacing */}
+                  {result.content.replace(/\n(?!\n)/g, '\n\n')}
+                </ReactMarkdown>
+              </div>
+              
+              {/* SMS Options - presented as separate cards */}
+              <div className="space-y-4">
+                  
+                  {/* Quick SMS - Single Message Block */}
+                  <div className="mb-4 bg-white rounded-xl shadow-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">⚡ Lightning Touch (SMS)</h3>
+                      <button
+                        onClick={() => copyToClipboard(smsMessage, index * 10 + 3)}
+                        className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                        title="Copy to clipboard"
+                      >
+                        {copiedIndex === index * 10 + 3 ? (
+                          <Check className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <Copy className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-gray-700">{smsMessage}</p>
+                  </div>
+                  
+                  {/* 3-Part SMS Sequence Block */}
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">🔥 Text Trifecta (SMS)</h3>
+                      <button
+                        onClick={() => copyToClipboard(threePartSMS.join('\n\n'), index * 10 + 7)}
+                        className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                        title="Copy to clipboard"
+                      >
+                        {copiedIndex === index * 10 + 7 ? (
+                          <Check className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <Copy className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                    <div className="prose prose-gray max-w-none">
+                      <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 p-4 rounded-lg">
+{threePartSMS.join('\n\n')}
+                      </pre>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div 
             key={index} 
             className={`rounded-xl shadow-lg p-6 animate-fade-in ${
               isImpactfulStatement 
                 ? 'bg-amber-100 shadow-amber-200/30 hover:shadow-amber-200/50 transition-all duration-300' 
-                : isFollowUpEmail
-                ? 'bg-green-100 shadow-green-200/30'
                 : 'bg-white'
             }`}
             style={{ 
               animationDelay: `${index * 100}ms`,
               ...(isImpactfulStatement && {
                 boxShadow: '0 2px 10px 0 rgba(251, 191, 36, 0.15)'
-              }),
-              ...(isFollowUpEmail && {
-                boxShadow: '0 2px 10px 0 rgba(34, 197, 94, 0.15)'
               })
             }}
           >
@@ -333,9 +426,6 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
               <h2 className={`font-bold text-gray-900 ${isImpactfulStatement ? 'text-2xl md:text-3xl' : 'text-2xl'}`}>
                 {isImpactfulStatement && (
                   <span className="inline-block mr-2 text-amber-500">✨</span>
-                )}
-                {isFollowUpEmail && (
-                  <span className="inline-block mr-2 text-green-600">✉️</span>
                 )}
                 {result.category}
               </h2> 

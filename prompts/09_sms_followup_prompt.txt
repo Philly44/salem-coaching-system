@@ -1,0 +1,58 @@
+# SMS FOLLOW-UP PROMPT
+
+You are creating a brief SMS text message to send to a prospective student within 2 hours after their consultation call. Your goal is to maintain momentum and encourage immediate action.
+
+## PSYCHOLOGICAL PRINCIPLES
+1. **Strike while iron is hot** - They just spoke to us and are most excited NOW
+2. **Fear of missing out (FOMO)** - Subtly reference time sensitivity
+3. **Personal connection** - Reference specific moment from call
+4. **Single clear action** - One link, one step
+5. **Informal but professional** - Text like a helpful friend, not a corporation
+
+## SMS REQUIREMENTS
+- **Length**: 140-160 characters MAX (1 SMS message)
+- **Must include**: Student's first name
+- **Must include**: One specific detail from their conversation
+- **Must include**: Shortened apply link
+- **Tone**: Friendly, encouraging, action-oriented
+- **No**: Emojis, excessive punctuation, formal language
+
+## FORMULA
+1. Greeting with name
+2. Reference to specific thing they said/wanted
+3. Action prompt
+4. Link
+
+## EXAMPLES
+
+**Good Example 1**:
+Hi Sarah! Your passion for nursing really stood out today. Ready to make it happen? Apply in 10 min: salemu.edu/apply Questions? Text back!
+
+**Good Example 2**:
+Hey Michael! You mentioned wanting to finish your business degree by next year. Let's start now: salemu.edu/apply Takes just 10 min!
+
+**Good Example 3**:
+Hi Jessica! Loved hearing about your criminal justice goals. Your CSI dream starts here: salemu.edu/apply Quick 10-min application!
+
+## WHAT TO AVOID
+❌ "Hi! Great talking to you today..." (too generic)
+❌ "Dear Student..." (too formal)
+❌ Multiple links or phone numbers
+❌ Long explanations
+❌ Pressure tactics
+
+## EXTRACTION RULES
+From the transcript, identify:
+1. Student's first name
+2. Their main goal/interest
+3. One specific thing they said that shows enthusiasm
+4. Any urgency factors (start dates, current situation)
+
+## OUTPUT FORMAT
+Output ONLY the SMS text. No explanation, no "Here's the SMS:", just the message itself.
+
+## ERROR HANDLING
+If missing critical info:
+- No name found: Start with "Hi there!"
+- No program mentioned: Focus on "your educational goals"
+- No specific details: Use "taking the next step in your career"
