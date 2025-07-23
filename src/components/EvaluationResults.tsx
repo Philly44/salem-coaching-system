@@ -349,7 +349,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    p: ({children}) => <p className="mb-4 leading-relaxed">{children}</p>,
+                    p: ({children}: {children?: React.ReactNode}) => <p className="mb-4 leading-relaxed">{children}</p>,
                     br: () => <br className="my-2" />
                   }}
                 >
