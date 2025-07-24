@@ -79,7 +79,7 @@ export function generateThreePartSMS(
       // Try to find a complete thought or sentence
       const sentences = motivation.match(/[^.!?]+[.!?]+/g) || [];
       
-      if (sentences.length > 0 && sentences[0].length <= maxQuoteLength) {
+      if (sentences.length > 0 && sentences[0] && sentences[0].length <= maxQuoteLength) {
         // Use the first complete sentence
         shortMotivation = sentences[0].trim();
       } else {
