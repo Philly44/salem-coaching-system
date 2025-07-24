@@ -410,7 +410,9 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           const action = actionMatch ? actionMatch[1].trim() : '';
           
           // Map categories to positions and colors
-          const likelihoodMap = {
+          type LikelihoodKey = 'VERY_LOW' | 'LOW' | 'MODERATE' | 'HIGH' | 'VERY_HIGH';
+          
+          const likelihoodMap: Record<LikelihoodKey, { position: number; label: string; color: string; bgColor: string; gradient: string }> = {
             VERY_LOW: { position: 10, label: 'Very Low', color: 'bg-red-500', bgColor: 'bg-red-50', gradient: 'from-red-600 to-red-400' },
             LOW: { position: 30, label: 'Low', color: 'bg-orange-500', bgColor: 'bg-orange-50', gradient: 'from-orange-600 to-orange-400' },
             MODERATE: { position: 50, label: 'Moderate', color: 'bg-yellow-500', bgColor: 'bg-yellow-50', gradient: 'from-yellow-600 to-yellow-400' },
@@ -418,7 +420,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             VERY_HIGH: { position: 90, label: 'Very High', color: 'bg-emerald-500', bgColor: 'bg-emerald-50', gradient: 'from-emerald-600 to-emerald-400' }
           };
           
-          const currentLevel = likelihoodMap[likelihoodCategory] || likelihoodMap.MODERATE;
+          const currentLevel = likelihoodMap[likelihoodCategory as LikelihoodKey] || likelihoodMap.MODERATE;
           
           return (
             <div 
@@ -825,7 +827,9 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
         const likelihoodCategory = likelihoodMatch ? likelihoodMatch[1] : 'MODERATE';
         const action = actionMatch ? actionMatch[1].trim() : '';
         
-        const likelihoodMap = {
+        type LikelihoodKey = 'VERY_LOW' | 'LOW' | 'MODERATE' | 'HIGH' | 'VERY_HIGH';
+        
+        const likelihoodMap: Record<LikelihoodKey, { position: number; label: string; color: string; bgColor: string; gradient: string }> = {
           VERY_LOW: { position: 10, label: 'Very Low', color: 'bg-red-500', bgColor: 'bg-red-50', gradient: 'from-red-600 to-red-400' },
           LOW: { position: 30, label: 'Low', color: 'bg-orange-500', bgColor: 'bg-orange-50', gradient: 'from-orange-600 to-orange-400' },
           MODERATE: { position: 50, label: 'Moderate', color: 'bg-yellow-500', bgColor: 'bg-yellow-50', gradient: 'from-yellow-600 to-yellow-400' },
@@ -833,7 +837,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           VERY_HIGH: { position: 90, label: 'Very High', color: 'bg-emerald-500', bgColor: 'bg-emerald-50', gradient: 'from-emerald-600 to-emerald-400' }
         };
         
-        const currentLevel = likelihoodMap[likelihoodCategory] || likelihoodMap.MODERATE;
+        const currentLevel = likelihoodMap[likelihoodCategory as LikelihoodKey] || likelihoodMap.MODERATE;
         
         return (
           <div className={`rounded-xl shadow-lg p-6 animate-fade-in ${currentLevel.bgColor}`}>
