@@ -140,6 +140,23 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
     return cleanedContent;
   };
 
+  // Collect special cards that need to be grouped
+  const talkListenResult = results.find(r => r && r.category === 'Talk/Listen Ratio Analysis');
+  const weeklyGrowthPlanResult = results.find(r => r && r.category === 'Weekly Growth Plan');
+  const coachingNotesResult = results.find(r => r && r.category === 'Coaching Notes');
+  const enrollmentPotentialResult = results.find(r => r && r.category === 'Enrollment Potential');
+  
+  // Get remaining results (excluding Title and the specially handled cards)
+  const remainingResults = results.filter(result => 
+    result && 
+    result.category !== 'Title' && 
+    result.category !== 'Talk/Listen Ratio Analysis' && 
+    result.category !== 'Weekly Growth Plan' &&
+    result.category !== 'Coaching Notes' &&
+    result.category !== 'Enrollment Potential' &&
+    result.category !== 'Email After Interview, Same Day'
+  );
+
   return (
     <div>
       {/* Display Title as a header, not as a card */}
@@ -153,32 +170,11 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
       
       {/* Display all other results as cards */}
       <div className="space-y-6">
-        {results.filter(result => result && result.category !== 'Title').map((result, index) => {
-        // Special handling for Talk/Listen Ratio Analysis
-        const isTalkListenRatio = result.category === 'Talk/Listen Ratio Analysis';   
-        // Special handling for Weekly Growth Plan
-        const isWeeklyGrowthPlan = result.category === 'Weekly Growth Plan';
+        {remainingResults.map((result, index) => {
 
         // Clean the content appropriately
         let cleanedContent;
-        if (isTalkListenRatio) {
-          cleanedContent = extractTableOnly(result.content);
-        } else if (isWeeklyGrowthPlan) {
-          // For Weekly Growth Plan, extract only the strategies
-          const cleaned = removeDuplicateHeading(result.content, result.category);    
-
-          // Find where Strategy #1 starts
-          const strategyStartPattern = /Strategy\s*#?\s*1:/i;
-          const strategyMatch = cleaned.match(strategyStartPattern);
-
-          if (strategyMatch && strategyMatch.index !== undefined) {
-            // Start from Strategy #1
-            cleanedContent = cleaned.substring(strategyMatch.index);
-          } else {
-            // Fallback if no Strategy #1 found - just show cleaned content
-            cleanedContent = cleaned;
-          }
-        } else if (result.category === 'Email After Interview, Same Day') {
+        if (result.category === 'Email After Interview, Same Day') {
           // Special handling for email content
           const cleaned = removeDuplicateHeading(result.content, result.category);
           
@@ -196,120 +192,6 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           cleanedContent = removeDuplicateHeading(result.content, result.category);
         }
         
-        
-        // Special handling for Weekly Growth Plan - render as two separate cards
-        if (isWeeklyGrowthPlan) {
-          // Use the original content to ensure nothing is lost
-          const fullContent = result.content;
-          
-          // Find both strategies in the original content with improved regex
-          // Look for Strategy 2 first to find the split point
-          const strategy2StartMatch = fullContent.match(/Strategy\s*#?\s*2:/i);
-          let strategy1Content = '';
-          let strategy2Content = '';
-          
-          if (strategy2StartMatch && strategy2StartMatch.index) {
-            // Extract Strategy 1 (everything before Strategy 2)
-            const strategy1Part = fullContent.substring(0, strategy2StartMatch.index);
-            const strategy1Match = strategy1Part.match(/Strategy\s*#?\s*1:\s*([\s\S]*)/i);
-            if (strategy1Match && strategy1Match[1]) {
-              strategy1Content = strategy1Match[1].trim();
-            }
-            
-            // Extract Strategy 2 (everything after Strategy 2:)
-            const strategy2Part = fullContent.substring(strategy2StartMatch.index);
-            const strategy2Match = strategy2Part.match(/Strategy\s*#?\s*2:\s*([\s\S]*)/i);
-            if (strategy2Match && strategy2Match[1]) {
-              strategy2Content = strategy2Match[1].trim();
-            }
-          } else {
-            // Fallback: try original regex approach
-            const strategy1Match = fullContent.match(/Strategy\s*#?\s*1:\s*([\s\S]*?)(?=Strategy\s*#?\s*2:|$)/i);
-            const strategy2Match = fullContent.match(/Strategy\s*#?\s*2:\s*([\s\S]*?)$/i);
-            
-            if (strategy1Match && strategy1Match[1]) {
-              strategy1Content = strategy1Match[1].trim();
-            }
-            
-            if (strategy2Match && strategy2Match[1]) {
-              strategy2Content = strategy2Match[1].trim();
-            }
-          }
-          
-          // If the regex approach didn't work, fall back to the split method
-          if (!strategy1Content && !strategy2Content) {
-            const strategies = cleanedContent.split(/(?=Strategy\s*#?\s*2:)/i);
-            
-            if (strategies.length >= 1) {
-              const strategy1Full = strategies[0];
-              strategy1Content = strategy1Full.replace(/^Strategy\s*#?\s*1:\s*/i, '').trim();
-            }
-            
-            if (strategies.length >= 2) {
-              const strategy2Full = strategies[1];
-              strategy2Content = strategy2Full.replace(/^Strategy\s*#?\s*2:\s*/i, '').trim();
-            }
-          }
-          
-          
-          // Clean up any trailing markdown artifacts
-          strategy1Content = strategy1Content.replace(/\*+\s*$/, '').trim();
-          strategy2Content = strategy2Content.replace(/\*+\s*$/, '').trim();
-          
-          
-          return (
-            <div key={index}>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{result.category}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                {/* Strategy 1 Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Strategy #1</h3>
-                    <button
-                      onClick={() => copyToClipboard(`Strategy #1: ${strategy1Content}`, index * 2)}
-                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100 flex-shrink-0"
-                      title="Copy to clipboard"
-                    >
-                      {copiedIndex === index * 2 ? (
-                        <Check className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <Copy className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="prose prose-gray max-w-none break-words">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {strategy1Content}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-                
-                {/* Strategy 2 Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 min-h-full animate-fade-in" style={{ animationDelay: `${index * 100 + 150}ms` }}>
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Strategy #2</h3>
-                    <button
-                      onClick={() => copyToClipboard(`Strategy #2: ${strategy2Content}`, index * 2 + 1)}
-                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100 flex-shrink-0"
-                      title="Copy to clipboard"
-                    >
-                      {copiedIndex === index * 2 + 1 ? (
-                        <Check className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <Copy className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="prose prose-gray max-w-none break-words">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {strategy2Content}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        }
         
         // Check if this is the impactful statement (has quotes or specific phrases)
         const isImpactfulStatement = result.category.includes('"') || 
@@ -791,6 +673,328 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           </div>
         );
       })}
+      
+      {/* Special 3-card row for Talk/Listen Ratio and Strategy cards */}
+      {(talkListenResult || weeklyGrowthPlanResult) && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+          {/* Talk/Listen Ratio Card */}
+          {talkListenResult && (
+            <div className="bg-white rounded-xl shadow-lg p-6 animate-fade-in flex flex-col">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="font-bold text-gray-900 text-xl">Talk/Listen Ratio</h2>
+                <button
+                  onClick={() => copyToClipboard(talkListenResult.content, 100)}
+                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                  title="Copy to clipboard"
+                >
+                  {copiedIndex === 100 ? (
+                    <Check className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <Copy className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <div className="prose prose-gray max-w-none flex-grow overflow-auto">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    table: ({ children }: { children?: React.ReactNode }) => (
+                      <table className="w-full text-sm">
+                        {children}
+                      </table>
+                    ),
+                    th: ({ children }: { children?: React.ReactNode }) => (
+                      <th className="text-left py-1 px-2 text-xs font-medium">{children}</th>
+                    ),
+                    td: ({ children }: { children?: React.ReactNode }) => (
+                      <td className="py-1 px-2 text-xs">{children}</td>
+                    ),
+                  }}
+                >
+                  {extractTableOnly(talkListenResult.content)}
+                </ReactMarkdown>
+              </div>
+            </div>
+          )}
+          
+          {/* Strategy Cards from Weekly Growth Plan */}
+          {weeklyGrowthPlanResult && (() => {
+            // Parse strategies
+            const fullContent = weeklyGrowthPlanResult.content;
+            const strategy2StartMatch = fullContent.match(/Strategy\s*#?\s*2:/i);
+            let strategy1Content = '';
+            let strategy2Content = '';
+            
+            if (strategy2StartMatch && strategy2StartMatch.index) {
+              const strategy1Part = fullContent.substring(0, strategy2StartMatch.index);
+              const strategy1Match = strategy1Part.match(/Strategy\s*#?\s*1:\s*([\s\S]*)/i);
+              if (strategy1Match && strategy1Match[1]) {
+                strategy1Content = strategy1Match[1].trim();
+              }
+              
+              const strategy2Part = fullContent.substring(strategy2StartMatch.index);
+              const strategy2Match = strategy2Part.match(/Strategy\s*#?\s*2:\s*([\s\S]*)/i);
+              if (strategy2Match && strategy2Match[1]) {
+                strategy2Content = strategy2Match[1].trim();
+              }
+            }
+            
+            return (
+              <>
+                {/* Strategy 1 Card */}
+                <div className="bg-white rounded-xl shadow-lg p-6 animate-fade-in flex flex-col">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Strategy #1</h3>
+                    <button
+                      onClick={() => copyToClipboard(`Strategy #1: ${strategy1Content}`, 101)}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === 101 ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="prose prose-gray max-w-none break-words flex-grow overflow-auto text-sm">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {strategy1Content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+                
+                {/* Strategy 2 Card */}
+                <div className="bg-white rounded-xl shadow-lg p-6 animate-fade-in flex flex-col">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Strategy #2</h3>
+                    <button
+                      onClick={() => copyToClipboard(`Strategy #2: ${strategy2Content}`, 102)}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === 102 ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="prose prose-gray max-w-none break-words flex-grow overflow-auto text-sm">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {strategy2Content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+      
+      {/* Coaching Notes - displayed after the 3-card row */}
+      {coachingNotesResult && (
+        <div className="bg-white rounded-xl shadow-lg p-6 animate-fade-in">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="font-bold text-gray-900 text-xl">Coaching Notes</h2>
+            <button
+              onClick={() => copyToClipboard(coachingNotesResult.content, 103)}
+              className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+              title="Copy to clipboard"
+            >
+              {copiedIndex === 103 ? (
+                <Check className="w-5 h-5 text-green-600" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          <div className="prose prose-gray max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {removeDuplicateHeading(coachingNotesResult.content, 'Coaching Notes')}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
+      
+      {/* Enrollment Potential - displayed after Coaching Notes */}
+      {enrollmentPotentialResult && (() => {
+        const likelihoodMatch = enrollmentPotentialResult.content.match(/LIKELIHOOD:\s*(VERY_LOW|LOW|MODERATE|HIGH|VERY_HIGH)/);
+        const actionMatch = enrollmentPotentialResult.content.match(/ACTION:\s*([\s\S]+?)$/m);
+        
+        const likelihoodCategory = likelihoodMatch ? likelihoodMatch[1] : 'MODERATE';
+        const action = actionMatch ? actionMatch[1].trim() : '';
+        
+        const likelihoodMap = {
+          VERY_LOW: { position: 10, label: 'Very Low', color: 'bg-red-500', bgColor: 'bg-red-50', gradient: 'from-red-600 to-red-400' },
+          LOW: { position: 30, label: 'Low', color: 'bg-orange-500', bgColor: 'bg-orange-50', gradient: 'from-orange-600 to-orange-400' },
+          MODERATE: { position: 50, label: 'Moderate', color: 'bg-yellow-500', bgColor: 'bg-yellow-50', gradient: 'from-yellow-600 to-yellow-400' },
+          HIGH: { position: 70, label: 'High', color: 'bg-green-500', bgColor: 'bg-green-50', gradient: 'from-green-600 to-green-400' },
+          VERY_HIGH: { position: 90, label: 'Very High', color: 'bg-emerald-500', bgColor: 'bg-emerald-50', gradient: 'from-emerald-600 to-emerald-400' }
+        };
+        
+        const currentLevel = likelihoodMap[likelihoodCategory] || likelihoodMap.MODERATE;
+        
+        return (
+          <div className={`rounded-xl shadow-lg p-6 animate-fade-in ${currentLevel.bgColor}`}>
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="font-bold text-gray-900 text-xl">
+                Enrollment Potential
+              </h2>
+              <button
+                onClick={() => copyToClipboard(enrollmentPotentialResult.content, 104)}
+                className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                title="Copy to clipboard"
+              >
+                {copiedIndex === 104 ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+            
+            {/* Gradient Progress Bar with Ticks */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-2xl font-bold text-gray-900">{currentLevel.label} Potential</span>
+              </div>
+              <div className="relative">
+                {/* Background gradient bar */}
+                <div className="w-full h-8 rounded-full overflow-hidden bg-gradient-to-r from-red-400 via-yellow-400 to-green-400">
+                  {/* Tick marks */}
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="absolute left-[10%] w-0.5 h-full bg-white/30"></div>
+                    <div className="absolute left-[30%] w-0.5 h-full bg-white/30"></div>
+                    <div className="absolute left-[50%] w-0.5 h-full bg-white/30"></div>
+                    <div className="absolute left-[70%] w-0.5 h-full bg-white/30"></div>
+                    <div className="absolute left-[90%] w-0.5 h-full bg-white/30"></div>
+                  </div>
+                  {/* Current position indicator */}
+                  <div 
+                    className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white rounded-full shadow-lg border-2 border-gray-800 transition-all duration-1000"
+                    style={{ left: `${currentLevel.position}%` }}
+                  >
+                    <div className="absolute inset-1 bg-gray-800 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Item */}
+            {action && (
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <p className="text-gray-700 flex items-start mb-2">
+                  <span className="mr-2 flex-shrink-0">💡</span>
+                  <span className="font-medium">Next Best Action:</span>
+                </p>
+                <div className="text-gray-700 ml-6 whitespace-pre-line">{action}</div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+      
+      {/* Email/Momentum Email - displayed last */}
+      {emailResult && (() => {
+        const smsMessage = generateSMSFromResults(
+          emailResult.content,
+          impactfulResult?.content || '',
+          titleResult?.content || ''
+        );
+        const threePartSMS = generateThreePartSMS(
+          emailResult.content,
+          impactfulResult?.content || '',
+          titleResult?.content || ''
+        );
+        const plainTextEmail = generatePlainTextEmail(emailResult.content);
+        
+        return (
+          <div className="rounded-xl shadow-lg p-6 animate-fade-in bg-green-100 shadow-green-200/30"
+            style={{ 
+              boxShadow: '0 2px 10px 0 rgba(34, 197, 94, 0.15)'
+            }}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="font-bold text-gray-900 text-xl">
+                Momentum Email
+              </h2>
+              <button
+                onClick={() => copyToClipboard(emailResult.content, 105)}
+                className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                title="Copy to clipboard"
+              >
+                {copiedIndex === 105 ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+            
+            {/* Email Content - Keep original formatting */}
+            <div className="prose prose-gray max-w-none mb-6">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({children}: {children?: React.ReactNode}) => <p className="mb-4 leading-relaxed">{children}</p>,
+                  br: () => <br className="my-2" />
+                }}
+              >
+                {/* Convert single line breaks to double for proper paragraph spacing */}
+                {emailResult.content.replace(/\n(?!\n)/g, '\n\n')}
+              </ReactMarkdown>
+            </div>
+            
+            {/* SMS Options - presented as separate cards */}
+            <div className="space-y-4">
+                
+                {/* Quick SMS - Single Message Block */}
+                <div className="mb-4 bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">⚡ Lightning Touch (SMS)</h3>
+                    <button
+                      onClick={() => copyToClipboard(smsMessage, 106)}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === 106 ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-gray-700">{smsMessage}</p>
+                </div>
+                
+                {/* 3-Part SMS Sequence Block */}
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">🔥 Text Trifecta (SMS)</h3>
+                    <button
+                      onClick={() => copyToClipboard(threePartSMS.join('\n\n'), 107)}
+                      className="p-2 text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-100"
+                      title="Copy to clipboard"
+                    >
+                      {copiedIndex === 107 ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="prose prose-gray max-w-none">
+                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 p-4 rounded-lg">
+{threePartSMS.join('\n\n')}
+                    </pre>
+                  </div>
+                </div>
+            </div>
+          </div>
+        );
+      })()}
+      
       </div>
     </div>
   );
