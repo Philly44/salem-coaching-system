@@ -68,13 +68,58 @@ export function generateThreePartSMS(
   
   // Message 1: Personal connection + reminder (160 chars max)
   if (studentName !== 'there' && motivation) {
-    // Shorten long quotes intelligently
+    // Shorten long quotes intelligently to avoid fragments
     let shortMotivation = motivation;
-    if (motivation.length > 40) {
-      // Extract the most meaningful part
-      const keyPhrases = motivation.match(/(?:love|passion|want|dream|goal|help|care).{0,20}/i);
-      shortMotivation = keyPhrases ? keyPhrases[0].trim() : motivation.substring(0, 30) + '...';
+    
+    // Calculate available space for the quote
+    const templateLength = `Hi ${studentName}! When you said "" I knew ${program} was perfect for you.`.length;
+    const maxQuoteLength = 160 - templateLength - 10; // Leave some buffer
+    
+    if (motivation.length > maxQuoteLength) {
+      // Try to find a complete thought or sentence
+      const sentences = motivation.match(/[^.!?]+[.!?]+/g) || [];
+      
+      if (sentences.length > 0 && sentences[0].length <= maxQuoteLength) {
+        // Use the first complete sentence
+        shortMotivation = sentences[0].trim();
+      } else {
+        // Look for natural breaking points
+        const breakPoints = [
+          motivation.match(/^[^,]+,/), // First clause
+          motivation.match(/^[^-]+-/), // First part before dash
+          motivation.match(/^[^;]+;/), // First part before semicolon
+          motivation.match(/^.+?(?=\sand\s)/i), // Before "and"
+          motivation.match(/^.+?(?=\sbut\s)/i), // Before "but"
+          motivation.match(/^.+?(?=\sbecause\s)/i), // Before "because"
+        ];
+        
+        // Find the best break point that fits
+        for (const match of breakPoints) {
+          if (match && match[0].length <= maxQuoteLength && match[0].length > 20) {
+            shortMotivation = match[0].trim().replace(/[,;-]$/, '');
+            break;
+          }
+        }
+        
+        // If no good break point, find the last complete word
+        if (shortMotivation === motivation && motivation.length > maxQuoteLength) {
+          const words = motivation.split(' ');
+          let currentLength = 0;
+          let cutIndex = 0;
+          
+          for (let i = 0; i < words.length; i++) {
+            if (currentLength + words[i].length + 1 > maxQuoteLength) {
+              break;
+            }
+            currentLength += words[i].length + 1;
+            cutIndex = i;
+          }
+          
+          shortMotivation = words.slice(0, cutIndex + 1).join(' ');
+        }
+      }
     }
+    
     messages.push(
       trimToSMSLength(`Hi ${studentName}! When you said "${shortMotivation}" I knew ${program} was perfect for you.`)
     );
@@ -143,7 +188,46 @@ function createSMSMessage(data: SMSData): string {
     // Full personalization
     {
       condition: () => studentName !== 'there' && program !== 'goals' && keyMotivation,
-      message: () => `Hi ${studentName}! Your "${keyMotivation}" really inspired me. Ready to start ${program}? 🚀 Apply now: salemu.edu/apply (10 min)`
+      message: () => {
+        // Smart quote truncation to avoid fragments
+        let shortMotivation = keyMotivation;
+        const templateLength = `Hi ${studentName}! Your "" really inspired me. Ready to start ${program}? 🚀 Apply now: salemu.edu/apply (10 min)`.length;
+        const maxQuoteLength = 160 - templateLength;
+        
+        if (keyMotivation.length > maxQuoteLength) {
+          // Find natural breaking point
+          const breakPoints = [
+            keyMotivation.match(/^[^,]+/), // Before first comma
+            keyMotivation.match(/^[^-]+/), // Before first dash
+            keyMotivation.match(/^.+?(?=\sand\s)/i), // Before "and"
+            keyMotivation.match(/^.+?(?=\sbut\s)/i), // Before "but"
+          ];
+          
+          for (const match of breakPoints) {
+            if (match && match[0].length <= maxQuoteLength && match[0].length > 15) {
+              shortMotivation = match[0].trim();
+              break;
+            }
+          }
+          
+          // If still too long, truncate at word boundary
+          if (shortMotivation.length > maxQuoteLength) {
+            const words = shortMotivation.split(' ');
+            let length = 0;
+            let wordCount = 0;
+            
+            for (const word of words) {
+              if (length + word.length + 1 > maxQuoteLength) break;
+              length += word.length + 1;
+              wordCount++;
+            }
+            
+            shortMotivation = words.slice(0, wordCount).join(' ');
+          }
+        }
+        
+        return `Hi ${studentName}! Your "${shortMotivation}" really inspired me. Ready to start ${program}? 🚀 Apply now: salemu.edu/apply (10 min)`;
+      }
     },
     // Name and program
     {
