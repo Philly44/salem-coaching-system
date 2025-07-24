@@ -23,17 +23,34 @@ Likelihood categories:
 - HIGH: Strong interest, most concerns addressed, clear timeline
 - VERY_HIGH: Extremely engaged, ready to move forward, all concerns resolved
 
+Based on the student's profile and conversation, choose the MOST EFFECTIVE follow-up strategy from these sales psychology approaches:
+
+1. **Urgency Creation** (for moderate-high interest): Limited seats, application deadlines, cohort start dates
+2. **Social Proof** (for skeptical/research-oriented): Alumni success stories, LinkedIn connections, testimonials
+3. **Micro-Commitments** (for hesitant/overwhelmed): Break down application into small steps
+4. **Value Reinforcement** (for price-conscious): ROI calculations, payment plan details, career outcomes data
+5. **Objection Preemption** (for analytical types): FAQ document addressing their specific concerns
+6. **Emotional Connection** (for passion-driven): Stories of students with similar backgrounds/goals
+7. **Authority Building** (for credential-focused): Faculty credentials, program rankings, accreditation details
+8. **Risk Reversal** (for cautious decision-makers): Guarantee policies, trial periods, success rates
+9. **Personalized Resources** (for specific interests): Custom content based on their mentioned goals
+10. **Video Connection** (use sparingly ~10%): Virtual tours or face-to-face connection when visual/personal touch crucial
+
 Output format (EXACTLY as shown):
 LIKELIHOOD: [VERY_LOW/LOW/MODERATE/HIGH/VERY_HIGH]
 ACTION: [One specific action with detailed explanation. MUST be EXACTLY 4 complete sentences that include ALL of the following:
-Sentence 1: What specific action to take and exact timeline (e.g., "Schedule a 20-minute video call within 48 hours to...")
-Sentence 2: Why this action specifically addresses something the student mentioned in the interview (e.g., "This directly addresses their concern about X by showing Y...")
-Sentence 3: How to execute it with concrete details (e.g., "During the call, prepare X materials, ask about Y, and demonstrate Z...")
-Sentence 4: Expected impact with specific statistics (e.g., "Students who receive this type of follow-up are X% more likely to enroll within Y days...")]
+Sentence 1: What specific action to take and exact timeline
+Sentence 2: Why this action specifically addresses something the student mentioned in the interview
+Sentence 3: How to execute it with concrete details
+Sentence 4: Expected impact with specific statistics or behavioral psychology principle]
 
-Example:
+Examples of varied approaches:
+
 LIKELIHOOD: HIGH
-ACTION: Schedule a 15-minute video call within 48 hours to virtually tour the pediatric simulation lab that aligns with their expressed passion for working with children. This personalized approach directly addresses their desire to see hands-on training opportunities and creates visual excitement about the program's practical components. During the call, have them meet a current student or recent graduate working in pediatrics to establish peer connection and answer real-world questions. Research shows that students who participate in facility tours via video are 3x more likely to complete enrollment within a week compared to those who only receive follow-up emails.
+ACTION: Send a personalized "Success Path PDF" within 24 hours featuring three alumni who transitioned from similar backgrounds into their dream careers. This directly addresses Sarah's concern about career change feasibility by showing real people who made the exact transition she's considering from retail to healthcare. Create the PDF with their LinkedIn profiles, salary progression charts, and include a handwritten note saying "Sarah, I thought of you when I read Maria's story on page 2 - she also worked at Target before becoming an RN." Studies show that students who receive personalized success stories are 68% more likely to submit applications within 72 hours due to the "mirror neuron effect" in social learning.
+
+LIKELIHOOD: MODERATE  
+ACTION: Text the student tomorrow at 2pm (when they mentioned having a break) with a simple application checklist breaking the process into 5-minute tasks they can complete on their phone. This addresses their overwhelm about the application process by making it feel manageable during their busy work schedule as a single parent. Format the text as: "Hi [Name]! Just 3 quick things today: 1) Confirm your email ✓ 2) Upload any college transcripts you have ✓ 3) That's it for today! Tomorrow we'll do the next mini-step." Behavioral psychology shows that breaking large tasks into micro-commitments increases completion rates by 43% through the "foot-in-the-door" technique.
 
 Be realistic in your assessment. Not every interview leads to enrollment. Focus on actionable insights that can make a real difference.
 
