@@ -430,7 +430,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
             >
               <div className="flex justify-between items-start mb-4">
                 <h2 className="font-bold text-gray-900 text-xl">
-                  Enrollment Potential
+                  What are the chances of enrollment?
                 </h2>
                 <button
                   onClick={() => copyToClipboard(result.content, index)}
@@ -843,7 +843,7 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           <div className={`rounded-xl shadow-lg p-6 animate-fade-in ${currentLevel.bgColor}`}>
             <div className="flex justify-between items-start mb-4">
               <h2 className="font-bold text-gray-900 text-xl">
-                Enrollment Potential
+                What are the chances of enrollment?
               </h2>
               <button
                 onClick={() => copyToClipboard(enrollmentPotentialResult.content, 104)}
