@@ -76,11 +76,11 @@ export async function POST(request: NextRequest) {
           '01_title prompt.txt',
           '02_most impactful statement prompt.txt',
           '04_interview scorecard prompt.txt',
-          '10_enrollment_likelihood_prompt.txt',
           '09_talk time.txt',
           '05_application invitation assessment prompt.txt',
           '06_weekly growth plan prompt.txt',
           '07_coaching notes prompt.txt',
+          '10_enrollment_likelihood_prompt.txt',
           '08_email_blast_prompt.txt',
         ];
 
@@ -166,11 +166,11 @@ export async function POST(request: NextRequest) {
           { key: 'title', name: 'Title', useHaiku: true },
           { key: 'impactfulStatement', name: randomPhrase, useHaiku: false },
           { key: 'scorecard', name: 'Interview Scorecard', useHaiku: false },
-          { key: 'enrollmentLikelihood', name: 'Enrollment Likelihood', useHaiku: true },
           { key: 'talkListenRatio', name: 'Talk/Listen Ratio Analysis', useHaiku: false },
           { key: 'applicationInvitation', name: 'Application Invitation Assessment', useHaiku: true },
           { key: 'growthPlan', name: 'Weekly Growth Plan', useHaiku: false },
           { key: 'coachingNotes', name: 'Coaching Notes', useHaiku: false },
+          { key: 'enrollmentLikelihood', name: 'Enrollment Potential', useHaiku: true },
           { key: 'emailBlast', name: 'Email After Interview, Same Day', useHaiku: false },
         ];
         
@@ -324,8 +324,8 @@ export async function POST(request: NextRequest) {
         };
 
         // Split evaluations into groups
-        const lowRisk = evaluations.slice(0, 6); // First 6 can run with minimal delays
-        const highRisk = evaluations.slice(6); // Last 3 need sequential processing
+        const lowRisk = evaluations.slice(0, 7); // First 7 can run with minimal delays
+        const highRisk = evaluations.slice(7); // Last 2 need sequential processing (enrollment likelihood and email)
 
         // Process low-risk evaluations with staggered starts
         const lowRiskPromises = lowRisk.map((item, idx) => {
@@ -342,7 +342,7 @@ export async function POST(request: NextRequest) {
         // Process high-risk evaluations sequentially with dynamic delays
         for (let i = 0; i < highRisk.length; i++) {
           const item = highRisk[i];
-          const originalIndex = i + 6;
+          const originalIndex = i + 7;
           
           // Wait a bit before starting next high-risk evaluation
           if (i > 0) {

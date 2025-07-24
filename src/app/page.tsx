@@ -570,11 +570,11 @@ export default function Home() {
           { category: 'Title', content: data.title },
           { category: randomPhrase, content: data.impactfulStatement },
           { category: 'Interview Scorecard', content: data.scorecard },
-          { category: 'Enrollment Likelihood', content: data.enrollmentLikelihood },
           { category: 'Talk/Listen Ratio Analysis', content: data.talkListenRatio },
           { category: 'Application Invitation Assessment', content: data.applicationInvitation },
           { category: 'Weekly Growth Plan', content: data.growthPlan },
           { category: 'Coaching Notes', content: data.coachingNotes },
+          { category: 'Enrollment Potential', content: data.enrollmentLikelihood },
           { category: 'Email After Interview, Same Day', content: data.emailBlast }
         ];
         
@@ -680,7 +680,7 @@ export default function Home() {
                 }
               } else if (data.type === 'error') {
                 // Error in evaluation category - log it and potentially show placeholder
-                console.error('Evaluation error:', data);
+                console.log('Evaluation warning:', data);
                 
                 // If it's the email section, add a placeholder
                 if (data.key === 'emailBlast' && data.index !== undefined) {
@@ -699,7 +699,7 @@ export default function Home() {
                 
                 // Log completion details
                 if (data.missingKeys && data.missingKeys.length > 0) {
-                  console.error('WARNING: Missing sections after completion:', data.missingKeys);
+                  console.warn('Missing sections after completion:', data.missingKeys);
                 }
                 
                 // Clean up any null entries after completion

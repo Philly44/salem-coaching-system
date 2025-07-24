@@ -166,11 +166,11 @@ export async function POST(request: NextRequest) {
       '01_title prompt.txt',
       '02_most impactful statement prompt.txt',
       '04_interview scorecard prompt.txt',
-      '10_enrollment_likelihood_prompt.txt',  // New enrollment prediction
       '09_talk time.txt',
       '05_application invitation assessment prompt.txt',
       '06_weekly growth plan prompt.txt',
       '07_coaching notes prompt.txt',
+      '10_enrollment_likelihood_prompt.txt',  // New enrollment prediction
       '08_email_blast_prompt.txt',  // Email blast prompt
     ];
 
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Define which prompts use Haiku (faster/cheaper) vs Sonnet
-    const haikuIndices = [0, 3, 5]; // title, enrollment likelihood, application invitation
+    const haikuIndices = [0, 4, 7]; // title, application invitation, enrollment likelihood
     // Email (index 8) will use Sonnet for better quality
 
     // Create all evaluation functions (not executing yet)
@@ -297,11 +297,11 @@ export async function POST(request: NextRequest) {
       'title',
       'impactfulStatement',
       'scorecard',
-      'enrollmentLikelihood',
       'talkListenRatio',
       'applicationInvitation',
       'growthPlan',
       'coachingNotes',
+      'enrollmentLikelihood',
       'emailBlast',
     ];
     

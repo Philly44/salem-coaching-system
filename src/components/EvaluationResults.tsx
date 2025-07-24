@@ -517,37 +517,36 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
           );
         }
         
-        // Special handling for Enrollment Likelihood
-        const isEnrollmentLikelihood = result.category === 'Enrollment Likelihood';
+        // Special handling for Enrollment Potential
+        const isEnrollmentLikelihood = result.category === 'Enrollment Potential';
         if (isEnrollmentLikelihood) {
           // Parse the enrollment data
-          const likelihoodMatch = result.content.match(/LIKELIHOOD:\s*(\d+)/);
-          const actionMatch = result.content.match(/ACTION:\s*(.+?)(?:\n|$)/s);
+          const likelihoodMatch = result.content.match(/LIKELIHOOD:\s*(VERY_LOW|LOW|MODERATE|HIGH|VERY_HIGH)/);
+          const actionMatch = result.content.match(/ACTION:\s*([\s\S]+?)$/m);
           
-          const likelihood = likelihoodMatch ? parseInt(likelihoodMatch[1]) : 0;
+          const likelihoodCategory = likelihoodMatch ? likelihoodMatch[1] : 'MODERATE';
           const action = actionMatch ? actionMatch[1].trim() : '';
           
-          // Determine color based on likelihood
-          let barColor = 'bg-red-500'; // 0-39%
-          let bgColor = 'bg-red-50';
-          if (likelihood >= 70) {
-            barColor = 'bg-green-500';
-            bgColor = 'bg-green-50';
-          } else if (likelihood >= 40) {
-            barColor = 'bg-yellow-500';
-            bgColor = 'bg-yellow-50';
-          }
+          // Map categories to positions and colors
+          const likelihoodMap = {
+            VERY_LOW: { position: 10, label: 'Very Low', color: 'bg-red-500', bgColor: 'bg-red-50', gradient: 'from-red-600 to-red-400' },
+            LOW: { position: 30, label: 'Low', color: 'bg-orange-500', bgColor: 'bg-orange-50', gradient: 'from-orange-600 to-orange-400' },
+            MODERATE: { position: 50, label: 'Moderate', color: 'bg-yellow-500', bgColor: 'bg-yellow-50', gradient: 'from-yellow-600 to-yellow-400' },
+            HIGH: { position: 70, label: 'High', color: 'bg-green-500', bgColor: 'bg-green-50', gradient: 'from-green-600 to-green-400' },
+            VERY_HIGH: { position: 90, label: 'Very High', color: 'bg-emerald-500', bgColor: 'bg-emerald-50', gradient: 'from-emerald-600 to-emerald-400' }
+          };
+          
+          const currentLevel = likelihoodMap[likelihoodCategory] || likelihoodMap.MODERATE;
           
           return (
             <div 
               key={index} 
-              className={`rounded-xl shadow-lg p-6 animate-fade-in ${bgColor}`}
+              className={`rounded-xl shadow-lg p-6 animate-fade-in ${currentLevel.bgColor}`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex justify-between items-start mb-4">
-                <h2 className="font-bold text-gray-900 text-xl flex items-center">
-                  <span className="mr-2">📊</span>
-                  Enrollment Likelihood
+                <h2 className="font-bold text-gray-900 text-xl">
+                  Enrollment Potential
                 </h2>
                 <button
                   onClick={() => copyToClipboard(result.content, index)}
@@ -562,30 +561,41 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
                 </button>
               </div>
               
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-2xl font-bold text-gray-900">{likelihood}%</span>
-                  <span className="text-sm text-gray-600">
-                    {likelihood >= 70 ? 'High' : likelihood >= 40 ? 'Moderate' : 'Low'} Likelihood
-                  </span>
+              {/* Gradient Progress Bar with Ticks */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-2xl font-bold text-gray-900">{currentLevel.label} Potential</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
-                  <div 
-                    className={`h-full ${barColor} transition-all duration-1000 ease-out`}
-                    style={{ width: `${likelihood}%` }}
-                  />
+                <div className="relative">
+                  {/* Background gradient bar */}
+                  <div className="w-full h-8 rounded-full overflow-hidden bg-gradient-to-r from-red-400 via-yellow-400 to-green-400">
+                    {/* Tick marks */}
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="absolute left-[10%] w-0.5 h-full bg-white/30"></div>
+                      <div className="absolute left-[30%] w-0.5 h-full bg-white/30"></div>
+                      <div className="absolute left-[50%] w-0.5 h-full bg-white/30"></div>
+                      <div className="absolute left-[70%] w-0.5 h-full bg-white/30"></div>
+                      <div className="absolute left-[90%] w-0.5 h-full bg-white/30"></div>
+                    </div>
+                    {/* Current position indicator */}
+                    <div 
+                      className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white rounded-full shadow-lg border-2 border-gray-800 transition-all duration-1000"
+                      style={{ left: `${currentLevel.position}%` }}
+                    >
+                      <div className="absolute inset-1 bg-gray-800 rounded-full"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
               {/* Action Item */}
               {action && (
                 <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <p className="text-gray-700 flex items-start">
+                  <p className="text-gray-700 flex items-start mb-2">
                     <span className="mr-2 flex-shrink-0">💡</span>
                     <span className="font-medium">Next Best Action:</span>
                   </p>
-                  <p className="text-gray-700 mt-1 ml-6">{action}</p>
+                  <div className="text-gray-700 ml-6 whitespace-pre-line">{action}</div>
                 </div>
               )}
             </div>
