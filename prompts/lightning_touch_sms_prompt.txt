@@ -1,0 +1,107 @@
+# LIGHTNING TOUCH SMS PROMPT - ENHANCED PERSONALIZATION
+
+You are creating a highly personalized follow-up SMS to send within 2 hours after a college admissions interview. This should be MORE personalized than a single message but SHORTER than the 3-part Text Trifecta - aim for 2 connected messages or one longer message split naturally.
+
+## OBJECTIVE
+Create 1-2 SMS messages (320 characters total max) that feel like they're from someone who REALLY listened and cares about the student's specific situation.
+
+## DEEP PERSONALIZATION FRAMEWORK
+
+### Level 1: Extract Personal Story Elements
+From the transcript, identify:
+- **Emotional Moments**: When they shared fears, dreams, frustrations
+- **Specific Obstacles**: What's been holding them back
+- **Unique Details**: Job, family situation, past experiences
+- **Turning Points**: What made them consider college NOW
+- **Direct Quotes**: Exact impactful phrases they used (keep short)
+
+### Level 2: Connect Their Story to Success
+- Acknowledge their specific challenge
+- Bridge to how Salem solves it
+- Reference their end goal/dream
+
+## MESSAGE STRUCTURE OPTIONS
+
+### Option A: Two-Part Personal Journey (Preferred)
+**Message 1 (160 chars)**: Personal acknowledgment + specific understanding
+**Message 2 (160 chars)**: Solution + encouragement + CTA
+
+### Option B: Extended Single Message (300-320 chars)
+One flowing message that tells their story back to them with our solution embedded
+
+## EXTRACTION PRIORITIES
+1. **Most Vulnerable/Honest Moment**: What personal challenge did they share?
+2. **Specific Bad Experience**: Previous school, job, life situation
+3. **Dream Outcome**: Not just degree but WHY (better job, help family, prove something)
+4. **Unique Personal Detail**: Kids' ages, specific job, hometown, personal interest
+5. **Timeline/Urgency**: Age goals, family pressure, job situation
+
+## ADVANCED PERSONALIZATION TECHNIQUES
+
+### Technique 1: Mirror Their Language
+If they said "I'm tired of barely making it" → Use "ready to do more than just make it"
+If they said "My kids deserve better" → Use "give your kids the life they deserve"
+
+### Technique 2: Acknowledge Specific Fears
+"I know Phoenix made you skeptical about online learning..."
+"After 10 years away from school, I get why you're nervous..."
+"Juggling work and kids isn't easy, but..."
+
+### Technique 3: Reference Exact Details
+"Your experience at the crisis center shows..."
+"Working security while pursuing criminal justice..."
+"25 minutes from Bristol means..."
+
+## EXAMPLES WITH CONTEXT
+
+**Example 1: Career Changer with Kids**
+Context: Single mom, 2 kids, working retail, wants business degree
+Output:
+"Hi Anna! When you said 'I'm tired of choosing between groceries and my kids' activities' I felt that. You deserve better. (1/2)
+
+Your retail experience + our business degree = management roles with real salaries. Let's change your family's future: salemu.edu/apply 💪 (2/2)"
+
+**Example 2: Bad Previous Experience**
+Context: Phoenix was horrible, professors unhelpful, wrongly accused of plagiarism
+Output:
+"Hi Tom! I can't imagine how frustrating Phoenix was - zeros for 'plagiarizing' a title page?? That's ridiculous. You deserve real support, professors who actually help. Salem is different - we're small, we care, we answer. Ready for a fresh start? salemu.edu/apply"
+
+**Example 3: Specific Career Goal**
+Context: Wants to work with special needs kids, has experience with mentally challenged adults
+Output:
+"Hi Sarah! Your 3 years helping mentally challenged adults already shows your heart for special education. Imagine combining that experience with our adaptive PE training - you'll change lives! Start here: salemu.edu/apply 🌟"
+
+## POWER PHRASES TO INCORPORATE
+- "I heard you when you said..."
+- "Your experience with [specific] proves..."
+- "[Specific number] years of [their experience] + our degree = [their dream]"
+- "You mentioned [obstacle] - here's how we help..."
+- "From [current situation] to [their goal]"
+
+## AVOID AT ALL COSTS
+❌ Generic encouragement without specifics
+❌ Ignoring the challenges they shared
+❌ Corporate speak or formal language
+❌ Multiple different CTAs
+❌ Assumptions not based on transcript
+
+## FALLBACK IF LIMITED INFO
+If transcript lacks personal details, focus on:
+- Specific program + why it matters
+- Acknowledgment of taking a big step
+- Emphasis on support and being different
+
+"Hi [Name]! Choosing [program] after [timeframe] away from school takes courage. You're not just another number here - we'll make sure you succeed. Let's start: salemu.edu/apply"
+
+## OUTPUT FORMAT
+Provide the SMS message(s) in one of these formats:
+
+For two messages:
+[Message 1 text] (1/2)
+
+[Message 2 text] (2/2)
+
+For single extended message:
+[Complete message text]
+
+NO other text, explanations, or formatting.
