@@ -24,8 +24,44 @@ export function generateSMSFromResults(
   const program = titleProgramMatch?.[1]?.trim() || emailProgramMatch?.[1]?.trim() || 'goals';
   
   // Extract key motivation from impactful statement
-  const motivationMatch = impactfulStatement.match(/"([^"]+)"/);
-  const motivation = motivationMatch?.[1] || '';
+  let motivation = '';
+  if (impactfulStatement) {
+    // Try to extract quoted text
+    const motivationMatch = impactfulStatement.match(/"([^"]+)"/);
+    if (motivationMatch && motivationMatch[1]) {
+      motivation = motivationMatch[1];
+      
+      // Check if it's a complete thought
+      const isCompleteThought = (text: string): boolean => {
+        // Must have subject and verb, or be a complete phrase
+        const hasSubjectVerb = /^(I|You|We|They|He|She|It|My|Your|Our|Their)\s+\w+/.test(text);
+        const isCompletePhrase = /^(Working|Being|Having|Getting|Making|Taking|Doing|Helping|Serving|Building|Creating)\s+\w+/.test(text);
+        const hasEndPunctuation = /[.!?]$/.test(text);
+        const minWordCount = text.split(' ').length >= 4;
+        
+        return (hasSubjectVerb || isCompletePhrase || hasEndPunctuation) && minWordCount;
+      };
+      
+      // If not a complete thought, try to extract a better alternative from the email
+      if (!isCompleteThought(motivation)) {
+        // Look for specific motivational phrases in the email
+        const motivationalPatterns = [
+          /(?:passion|dream|goal|vision|excited?|love|inspired?)\s+(?:for|about|to)\s+([^.!?]+[.!?])/i,
+          /(?:want|need|hope|plan|ready)\s+to\s+([^.!?]+[.!?])/i,
+          /(?:tired of|done with|ready for change|want better)\s+([^.!?]+[.!?])/i,
+          /(?:my kids?|my family|my future)\s+([^.!?]+[.!?])/i,
+        ];
+        
+        for (const pattern of motivationalPatterns) {
+          const match = emailContent.match(pattern);
+          if (match && match[0].length > 20 && match[0].length < 100) {
+            motivation = match[0];
+            break;
+          }
+        }
+      }
+    }
+  }
   
   // Generate SMS based on available data
   return createSMSMessage({ studentName, program, keyMotivation: motivation });
@@ -183,11 +219,26 @@ function trimToSMSLength(message: string): string {
 function createSMSMessage(data: SMSData): string {
   const { studentName, program, keyMotivation } = data;
   
+  // Check if keyMotivation is a fragment or incomplete thought
+  const isFragment = (text: string): boolean => {
+    if (!text) return true;
+    // Check for incomplete sentences
+    const fragmentPatterns = [
+      /^(That|This|It|When|If|Because|Since|Although|While|After|Before)\s+\w+\s+(sounds?|seems?|looks?|feels?)\s+(really|very|quite)?$/i,
+      /^(That|This|It)\s+(definitely|really|certainly|surely)\s+\w+$/i,
+      /(really|very|quite|definitely)$/i, // Ends with adverb
+      /^(I|You|We|They|He|She)\s+(really|definitely|certainly)$/i,
+      /\s+(that|which|who|where|when)$/i, // Ends with relative pronoun
+    ];
+    
+    return fragmentPatterns.some(pattern => pattern.test(text.trim()));
+  };
+  
   // Templates based on available information
   const templates = [
-    // Full personalization
+    // Full personalization with valid motivation
     {
-      condition: () => studentName !== 'there' && program !== 'goals' && keyMotivation,
+      condition: () => studentName !== 'there' && program !== 'goals' && keyMotivation && !isFragment(keyMotivation),
       message: () => {
         // Smart quote truncation to avoid fragments
         let shortMotivation = keyMotivation;
