@@ -235,6 +235,7 @@ export async function POST(request: NextRequest) {
               const messageParams = {
                 model,
                 max_tokens: maxTokens, // Use the maxTokens we calculated above
+                system: 'You are a coaching assistant. Output only the requested content without any preambles, introductions, or meta-commentary. Begin your response directly with the content requested in the prompt.',
                 messages: [
                   {
                     role: 'user' as const,

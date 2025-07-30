@@ -34,7 +34,6 @@ Based on the student's profile and conversation, choose the MOST EFFECTIVE follo
 7. **Authority Building** (for credential-focused): Faculty credentials, program rankings, accreditation details
 8. **Risk Reversal** (for cautious decision-makers): Guarantee policies, trial periods, success rates
 9. **Personalized Resources** (for specific interests): Custom content based on their mentioned goals
-10. **Video Connection** (use sparingly ~10%): Virtual tours or face-to-face connection when visual/personal touch crucial
 
 Output format (EXACTLY as shown):
 LIKELIHOOD: [VERY_LOW/LOW/MODERATE/HIGH/VERY_HIGH]

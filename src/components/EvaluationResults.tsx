@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, Check, Mail, MessageSquare, FileText } from 'lucide-react';
+import { Copy, Check, Mail, MessageSquare, FileText, Download } from 'lucide-react';
 import { generateSMSFromResults, generateThreePartSMS } from '@/utils/smsGenerator';
 import { generatePlainTextEmail } from '@/utils/emailTextVersions';
 import type { EvaluationResult } from '@/types/evaluation';
@@ -14,8 +14,9 @@ interface EvaluationResultsProps {
   transcript: string;
 }
 
-export default function EvaluationResults({ results }: EvaluationResultsProps) {      
+export default function EvaluationResults({ results, transcript }: EvaluationResultsProps) {      
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   // Debug logging - only log when we have all results
   if (results.filter(r => r).length === results.length && results.length > 0) {
@@ -34,6 +35,50 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
     navigator.clipboard.writeText(text);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      
+      const response = await fetch('/api/generate-pdf-html', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ results, transcript }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('PDF generation failed:', errorData);
+        throw new Error(errorData.error || 'Failed to generate PDF');
+      }
+
+      // Get the HTML content
+      const htmlContent = await response.text();
+      
+      // Open in new window for printing
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Auto-trigger print dialog after content loads
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 250);
+        };
+      } else {
+        alert('Please allow pop-ups to download the PDF');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   // Function to remove duplicate heading from content
@@ -159,6 +204,27 @@ export default function EvaluationResults({ results }: EvaluationResultsProps) {
 
   return (
     <div>
+      {/* PDF Download Button */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleDownloadPDF}
+          disabled={isGeneratingPDF}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {isGeneratingPDF ? (
+            <>
+              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+              Generating PDF...
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              Download PDF
+            </>
+          )}
+        </button>
+      </div>
+      
       {/* Display Title as a header, not as a card */}
       {titleContent && (
         <div className="mb-8 text-center">
