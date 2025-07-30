@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { EvaluationResults, AnthropicResponse } from '@/types/evaluation';
+import { EvaluationResults } from '@/types/evaluation';
 import { sanitizeTranscript, validateSanitization, getSanitizationStats } from '@/utils/sanitizeTranscript';
 import { removePreamble, retryWithBackoff, apiConfig } from '@/lib/api-common';
 
