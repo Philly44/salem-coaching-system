@@ -60,8 +60,8 @@ REJECT   REJECT   HEADER   GREAT_MOMENT SCORECARD TALK_RATIO INVITATION GROWTH_P
 - Section 5: Next Steps & Follow-up Planning
 
 **Critical Override Rules:**
-- ANY "Does Not Meet" section = "Does Not Meet" overall
-- ANY "Developing" section = "Developing" overall  
+- ANY "Unable to Determine" section = "Unable to Determine" overall
+- ANY "Partial Understanding" section = "Partial Understanding" overall  
 - Overall performance CANNOT exceed lowest section
 
 ### Module 4: Talk/Listen Ratio Analysis Engine (NEW)
@@ -76,10 +76,10 @@ REJECT   REJECT   HEADER   GREAT_MOMENT SCORECARD TALK_RATIO INVITATION GROWTH_P
 ```
 
 **Performance Mapping:**
-- **Exceeds Expected Results**: 40-50% advisor talking (optimal range)
-- **Fully Effective**: 30-39% or 51-60% advisor talking
-- **Developing**: 20-29% or 61-75% advisor talking  
-- **Does Not Meet Expected Results**: Under 20% or 76%+ advisor talking
+- **Exceptional Guidance**: 40-50% advisor talking (optimal range)
+- **Comprehensive Knowledge**: 30-39% or 51-60% advisor talking
+- **Partial Understanding**: 20-29% or 61-75% advisor talking  
+- **Unable to Determine**: Under 20% or 76%+ advisor talking
 
 ### Module 5: Application Invitation Assessment Engine
 **File:** `05_application_invitation_assessment_prompt.txt`  

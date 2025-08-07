@@ -14,16 +14,16 @@ Create a scorecard evaluation following the EXACT format and objective criteria 
 ---
 
 ## PERFORMANCE LEVELS
-- **Does Not Meet Expected Results** (0 points)
-- **Developing** (1 point)
-- **Fully Effective** (2 points)
-- **Exceeds Expected Results** (3 points)
+- **Unable to Determine** (0 points)
+- **Partial Understanding** (1 point)
+- **Comprehensive Knowledge** (2 points)
+- **Exceptional Guidance** (3 points)
 
 ⚠️ **OVERRIDE RULE ENFORCEMENT**
-- "Developing" in ANY section = "Developing" overall (NO EXCEPTIONS)
-- "Does Not Meet" in ANY section = "Does Not Meet" overall (NO EXCEPTIONS)  
+- "Partial Understanding" in ANY section = "Partial Understanding" overall (NO EXCEPTIONS)
+- "Unable to Determine" in ANY section = "Unable to Determine" overall (NO EXCEPTIONS)  
 - Overall performance is CAPPED by the weakest section
-- You CANNOT assign "Fully Effective" overall if any section is "Developing"
+- You CANNOT assign "Comprehensive Knowledge" overall if any section is "Partial Understanding"
 
 ---
 
@@ -45,10 +45,10 @@ Look for questions exploring these themes (any phrasing that asks about):
 - **Interest background** - Questions asking them to describe their interest
 
 **SCORING:**
-- **Does Not Meet Expected Results**: 0 points total
-- **Developing**: 1-2 points total
-- **Fully Effective**: 3-5 points total
-- **Exceeds Expected Results**: 6+ points total
+- **Unable to Determine**: 0 points total
+- **Partial Understanding**: 1-2 points total
+- **Comprehensive Knowledge**: 3-5 points total
+- **Exceptional Guidance**: 6+ points total
 
 ---
 
@@ -67,10 +67,10 @@ Look for questions exploring these themes (any phrasing that asks about):
 - Credit transfer information
 
 **SCORING:**
-- **Does Not Meet Expected Results**: 0-2 points total
-- **Developing**: 3-4 points total  
-- **Fully Effective**: 5-6 points total
-- **Exceeds Expected Results**: 7+ points total
+- **Unable to Determine**: 0-2 points total
+- **Partial Understanding**: 3-4 points total  
+- **Comprehensive Knowledge**: 5-6 points total
+- **Exceptional Guidance**: 7+ points total
 
 ---
 
@@ -86,16 +86,16 @@ Look for questions exploring these themes (any phrasing that asks about):
 - Student support services (contains "student support" or "student services")
 
 **SCORING:**
-- **Does Not Meet Expected Results**: 0-2 resources found
-- **Developing**: 3-4 resources found
-- **Fully Effective**: 5-6 resources found
-- **Exceeds Expected Results**: 7+ resources found
+- **Unable to Determine**: 0-2 resources found
+- **Partial Understanding**: 3-4 resources found
+- **Comprehensive Knowledge**: 5-6 resources found
+- **Exceptional Guidance**: 7+ resources found
 
 ---
 
 ### SECTION 4 - Financial Information & Payment Options
 
-**REQUIRED ELEMENTS (must find all for Fully Effective):**
+**REQUIRED ELEMENTS (must find all for Comprehensive Knowledge):**
 1. **Pricing information** - Specific dollar amounts OR cost details
 2. **FAFSA guidance** - Contains "FAFSA," "federal aid," OR "financial aid"
 3. **Payment options** - Contains "loan," "payment plan," OR "financing"
@@ -109,10 +109,10 @@ Look for questions exploring these themes (any phrasing that asks about):
 - Financial reassurance statements
 
 **SCORING:**
-- **Does Not Meet Expected Results**: 0-1 required elements found
-- **Developing**: 2 required elements found + 0 bonus
-- **Fully Effective**: 3 required elements found + 0-1 bonus
-- **Exceeds Expected Results**: 3 required elements found + 2+ bonus
+- **Unable to Determine**: 0-1 required elements found
+- **Partial Understanding**: 2 required elements found + 0 bonus
+- **Comprehensive Knowledge**: 3 required elements found + 0-1 bonus
+- **Exceptional Guidance**: 3 required elements found + 2+ bonus
 
 ---
 
@@ -124,10 +124,10 @@ Look for questions exploring these themes (any phrasing that asks about):
 3. **Specific timing** - Contains specific days, dates, OR time frames
 
 **SCORING:**
-- **Does Not Meet Expected Results**: 0-1 elements found
-- **Developing**: 2 elements found
-- **Fully Effective**: 3 elements found
-- **Exceeds Expected Results**: 3 elements found + scheduling preferences discussed
+- **Unable to Determine**: 0-1 elements found
+- **Partial Understanding**: 2 elements found
+- **Comprehensive Knowledge**: 3 elements found
+- **Exceptional Guidance**: 3 elements found + scheduling preferences discussed
 
 ---
 
@@ -146,11 +146,11 @@ Look for questions exploring these themes (any phrasing that asks about):
 Lowest Section Performance: ___________
 
 **STEP 3: Apply Override Rules (NO EXCEPTIONS)**
-1. If LOWEST section = "Does Not Meet Expected Results" → Overall = "Does Not Meet Expected Results" [STOP]
-2. If LOWEST section = "Developing" → Overall = "Developing" [STOP]
-3. If ALL sections = "Fully Effective" or higher → Continue to step 4
-4. If 4+ sections = "Exceeds Expected Results" → Overall = "Exceeds Expected Results"
-5. Otherwise → Overall = "Fully Effective"
+1. If LOWEST section = "Unable to Determine" → Overall = "Unable to Determine" [STOP]
+2. If LOWEST section = "Partial Understanding" → Overall = "Partial Understanding" [STOP]
+3. If ALL sections = "Comprehensive Knowledge" or higher → Continue to step 4
+4. If 4+ sections = "Exceptional Guidance" → Overall = "Exceptional Guidance"
+5. Otherwise → Overall = "Comprehensive Knowledge"
 
 **STEP 4: Document Override Logic**
 Overall Performance = _________ because lowest section scored _________ and override rule #__ applies.
@@ -201,8 +201,8 @@ Overall Performance = _________ because lowest section scored _________ and over
 **If verification = NO, you MUST recalculate before proceeding.**
 
 **REMEMBER**: 
-- ANY "Developing" section = "Developing" overall
-- ANY "Does Not Meet" section = "Does Not Meet" overall
+- ANY "Partial Understanding" section = "Partial Understanding" overall
+- ANY "Unable to Determine" section = "Unable to Determine" overall
 - NO EXCEPTIONS to these rules
 
 ---

@@ -82,15 +82,15 @@ IF percentage_sum < 99 OR percentage_sum > 101:
 advisor_percent = advisor_percentage_rounded
 
 IF (advisor_percent >= 40 AND advisor_percent <= 50):
-    performance_level = "Exceeds Expected Results"
+    performance_level = "Exceptional Guidance"
 ELSE IF ((advisor_percent >= 30 AND advisor_percent <= 39) OR 
          (advisor_percent >= 51 AND advisor_percent <= 60)):
-    performance_level = "Fully Effective"
+    performance_level = "Comprehensive Knowledge"
 ELSE IF ((advisor_percent >= 20 AND advisor_percent <= 29) OR 
          (advisor_percent >= 61 AND advisor_percent <= 75)):
-    performance_level = "Developing"  
+    performance_level = "Partial Understanding"  
 ELSE:
-    performance_level = "Does Not Meet Expected Results"
+    performance_level = "Unable to Determine"
 ```
 
 **PERFORMANCE LEVEL VALIDATION:**
@@ -155,23 +155,23 @@ ELSE:
 **Test Case 1: Advisor Dominates (2500 words advisor, 300 words student)**
 - Expected advisor percentage: 89% (rounded from 89.29%)
 - Expected student percentage: 11% (rounded from 10.71%)
-- Expected performance: "Does Not Meet Expected Results"
+- Expected performance: "Unable to Determine"
 - Expected output:
 ```
 | Talk/Listen Ratio | Performance Level | Industry Benchmark |
 |-------------------|--------------------|--------------------|
-| 89% / 11% | Does Not Meet Expected Results | 43% / 57% (Optimal) |
+| 89% / 11% | Unable to Determine | 43% / 57% (Optimal) |
 ```
 
 **Test Case 2: Optimal Balance (430 words advisor, 570 words student)**
 - Expected advisor percentage: 43% (rounded from 43.00%)
 - Expected student percentage: 57% (rounded from 57.00%)
-- Expected performance: "Exceeds Expected Results"
+- Expected performance: "Exceptional Guidance"
 - Expected output:
 ```
 | Talk/Listen Ratio | Performance Level | Industry Benchmark |
 |-------------------|--------------------|--------------------|
-| 43% / 57% | Exceeds Expected Results | 43% / 57% (Optimal) |
+| 43% / 57% | Exceptional Guidance | 43% / 57% (Optimal) |
 ```
 
 ---

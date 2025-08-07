@@ -17,10 +17,10 @@ Section_5_Performance = "[EXACT_PERFORMANCE_LEVEL]"
 **VALIDATION CHECKLIST (COMPLETE BEFORE PROCESSING):**
 □ All 5 section performances provided: YES/NO
 □ Each performance level is one of exactly 4 values: YES/NO
-  - "Does Not Meet Expected Results"
-  - "Developing" 
-  - "Fully Effective"
-  - "Exceeds Expected Results"
+  - "Unable to Determine"
+  - "Partial Understanding" 
+  - "Comprehensive Knowledge"
+  - "Exceptional Guidance"
 □ No typos or variations in performance level text: YES/NO
 □ No null, empty, or undefined values: YES/NO
 
@@ -37,7 +37,7 @@ Section_5_Performance = "[EXACT_PERFORMANCE_LEVEL]"
 
 ```
 STRATEGY_1_LOOKUP = {
-    "Does Not Meet Expected Results": {
+    "Unable to Determine": {
         "name": "Foundation Building Through Basic Inquiry",
         "phrases": [
             "Tell me about your interest in this field",
@@ -46,7 +46,7 @@ STRATEGY_1_LOOKUP = {
         ],
         "timing": "Early in conversation to establish baseline connection"
     },
-    "Developing": {
+    "Partial Understanding": {
         "name": "Systematic Questioning Development", 
         "phrases": [
             "What are your career goals with this degree?",
@@ -55,7 +55,7 @@ STRATEGY_1_LOOKUP = {
         ],
         "timing": "After initial rapport is established"
     },
-    "Fully Effective": {
+    "Comprehensive Knowledge": {
         "name": "Advanced Motivational Discovery",
         "phrases": [
             "What would success look like to you five years from now?",
@@ -64,7 +64,7 @@ STRATEGY_1_LOOKUP = {
         ],
         "timing": "During deep rapport-building phase"
     },
-    "Exceeds Expected Results": {
+    "Exceptional Guidance": {
         "name": "Mastery-Level Engagement Techniques",
         "phrases": [
             "Paint me a picture of your ideal career scenario",
@@ -91,11 +91,11 @@ SECTIONS_TO_SCAN = [2, 3, 4, 5]
 FOR section_number in SECTIONS_TO_SCAN:
     section_performance = get_section_performance(section_number)
     
-    IF section_performance == "Does Not Meet Expected Results":
+    IF section_performance == "Unable to Determine":
         Gap_Analysis.append([section_number, 1])  // Priority 1 = Critical Gap
-    ELSE IF section_performance == "Developing":
+    ELSE IF section_performance == "Partial Understanding":
         Gap_Analysis.append([section_number, 2])  // Priority 2 = Development Gap
-    // Skip "Fully Effective" and "Exceeds Expected Results"
+    // Skip "Comprehensive Knowledge" and "Exceptional Guidance"
 ```
 
 **STEP 2B: APPLY DETERMINISTIC SELECTION LOGIC**
@@ -125,7 +125,7 @@ ELSE:
 ```
 GAP_STRATEGY_LOOKUP = {
     2: {  // Program Structure & Information
-        "Does Not Meet Expected Results": {
+        "Unable to Determine": {
             "name": "Essential Program Details Delivery",
             "phrases": [
                 "The program is delivered entirely online",
@@ -134,7 +134,7 @@ GAP_STRATEGY_LOOKUP = {
             ],
             "timing": "When student asks about program logistics"
         },
-        "Developing": {
+        "Partial Understanding": {
             "name": "Comprehensive Program Structure Explanation",
             "phrases": [
                 "Let me walk you through the semester structure",
@@ -145,7 +145,7 @@ GAP_STRATEGY_LOOKUP = {
         }
     },
     3: {  // School Resources & Support
-        "Does Not Meet Expected Results": {
+        "Unable to Determine": {
             "name": "Core Support Services Introduction",
             "phrases": [
                 "You'll have access to tutoring services",
@@ -154,7 +154,7 @@ GAP_STRATEGY_LOOKUP = {
             ],
             "timing": "When addressing student concerns about support"
         },
-        "Developing": {
+        "Partial Understanding": {
             "name": "Comprehensive Support Network Overview",
             "phrases": [
                 "The writing center helps with every assignment",
@@ -165,7 +165,7 @@ GAP_STRATEGY_LOOKUP = {
         }
     },
     4: {  // Financial Information & Payment Options
-        "Does Not Meet Expected Results": {
+        "Unable to Determine": {
             "name": "Essential Financial Information Delivery",
             "phrases": [
                 "Let me share the investment details with you",
@@ -174,7 +174,7 @@ GAP_STRATEGY_LOOKUP = {
             ],
             "timing": "When student shows strong interest in the program"
         },
-        "Developing": {
+        "Partial Understanding": {
             "name": "Comprehensive Financial Planning Discussion",
             "phrases": [
                 "Federal financial aid can cover a significant portion",
@@ -185,7 +185,7 @@ GAP_STRATEGY_LOOKUP = {
         }
     },
     5: {  // Next Steps & Follow-up Planning
-        "Does Not Meet Expected Results": {
+        "Unable to Determine": {
             "name": "Basic Follow-up Process Establishment",
             "phrases": [
                 "I'd like to schedule a follow-up call with you",
@@ -194,7 +194,7 @@ GAP_STRATEGY_LOOKUP = {
             ],
             "timing": "Near the end of the conversation"
         },
-        "Developing": {
+        "Partial Understanding": {
             "name": "Structured Next Steps Planning",
             "phrases": [
                 "Let's schedule your enrollment conversation for tomorrow",
@@ -225,10 +225,10 @@ EXCELLENCE_STRATEGY = {
 
 ```
 Section_1_Level = Section_1_Performance
-Gap_Count = COUNT of sections 2-5 with ("Does Not Meet Expected Results" OR "Developing")
+Gap_Count = COUNT of sections 2-5 with ("Unable to Determine" OR "Partial Understanding")
 
 // EXACT CONDITIONAL LOGIC - NO INTERPRETATION
-IF (Section_1_Level == "Does Not Meet Expected Results") OR (Section_1_Level == "Developing"):
+IF (Section_1_Level == "Unable to Determine") OR (Section_1_Level == "Partial Understanding"):
     IF Gap_Count >= 2:
         Focus_Area = "Foundation Building with Multi-Area Development"
     ELSE IF Gap_Count == 1:
@@ -236,7 +236,7 @@ IF (Section_1_Level == "Does Not Meet Expected Results") OR (Section_1_Level == 
     ELSE IF Gap_Count == 0:
         Focus_Area = "Advanced Rapport Development"
 ELSE:
-    // Section 1 is "Fully Effective" or "Exceeds Expected Results"
+    // Section 1 is "Comprehensive Knowledge" or "Exceptional Guidance"
     IF Gap_Count >= 2:
         Focus_Area = "Excellence Maintenance with Strategic Improvements"
     ELSE IF Gap_Count == 1:
@@ -330,22 +330,22 @@ ELSE:
 
 ## CONSISTENCY VERIFICATION EXAMPLES
 
-**Test Case 1: All Sections "Developing"**
-- Input: All 5 sections = "Developing"
+**Test Case 1: All Sections "Partial Understanding"**
+- Input: All 5 sections = "Partial Understanding"
 - Expected Strategy 1: "Systematic Questioning Development"
 - Expected Strategy 2: "Essential Program Details Delivery" (Section 2 wins tie-breaker)
 - Expected Strategy 2 Label: "*(Program Information Focus)*"
 - Expected Focus: "Foundation Building with Multi-Area Development"
 
-**Test Case 2: Section 1 "Fully Effective", Section 4 "Does Not Meet"**
-- Input: Section 1 = "Fully Effective", Section 4 = "Does Not Meet Expected Results"
+**Test Case 2: Section 1 "Comprehensive Knowledge", Section 4 "Unable to Determine"**
+- Input: Section 1 = "Comprehensive Knowledge", Section 4 = "Unable to Determine"
 - Expected Strategy 1: "Advanced Motivational Discovery"
 - Expected Strategy 2: "Essential Financial Information Delivery"
 - Expected Strategy 2 Label: "*(Financial Planning Focus)*"
 - Expected Focus: "Performance Optimization"
 
-**Test Case 3: All Sections "Exceeds Expected Results"**
-- Input: All 5 sections = "Exceeds Expected Results"
+**Test Case 3: All Sections "Exceptional Guidance"**
+- Input: All 5 sections = "Exceptional Guidance"
 - Expected Strategy 1: "Mastery-Level Engagement Techniques"
 - Expected Strategy 2: "Advanced Consultation Mastery"
 - Expected Strategy 2 Label: "*(Excellence Enhancement Focus)*"
