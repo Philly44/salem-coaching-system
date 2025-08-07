@@ -62,7 +62,7 @@ REJECT   REJECT   HEADER   GREAT_MOMENT SCORECARD TALK_RATIO INVITATION GROWTH_P
 **Critical Override Rules:**
 - ANY "Unable to Determine" section = "Unable to Determine" overall
 - ANY "Partial Understanding" section = "Partial Understanding" overall  
-- Overall performance CANNOT exceed lowest section
+- Prospective Student Comprehension CANNOT exceed lowest section
 
 ### Module 4: Talk/Listen Ratio Analysis Engine (NEW)
 **File:** `09_talk_time_prompt.txt`

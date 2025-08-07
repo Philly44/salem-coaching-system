@@ -22,7 +22,7 @@ Create a scorecard evaluation following the EXACT format and objective criteria 
 ⚠️ **OVERRIDE RULE ENFORCEMENT**
 - "Partial Understanding" in ANY section = "Partial Understanding" overall (NO EXCEPTIONS)
 - "Unable to Determine" in ANY section = "Unable to Determine" overall (NO EXCEPTIONS)  
-- Overall performance is CAPPED by the weakest section
+- Prospective Student Comprehension is CAPPED by the weakest section
 - You CANNOT assign "Comprehensive Knowledge" overall if any section is "Partial Understanding"
 
 ---
@@ -131,7 +131,7 @@ Look for questions exploring these themes (any phrasing that asks about):
 
 ---
 
-## OVERALL PERFORMANCE CALCULATION
+## PROSPECTIVE STUDENT COMPREHENSION CALCULATION
 
 **MANDATORY OVERRIDE RULE APPLICATION SEQUENCE:**
 
@@ -153,9 +153,9 @@ Lowest Section Performance: ___________
 5. Otherwise → Overall = "Comprehensive Knowledge"
 
 **STEP 4: Document Override Logic**
-Overall Performance = _________ because lowest section scored _________ and override rule #__ applies.
+Prospective Student Comprehension = _________ because lowest section scored _________ and override rule #__ applies.
 
-⚠️ **CRITICAL**: Overall performance CANNOT exceed the lowest individual section performance.
+⚠️ **CRITICAL**: Prospective Student Comprehension CANNOT exceed the lowest individual section performance.
 
 ---
 
@@ -173,11 +173,11 @@ Overall Performance = _________ because lowest section scored _________ and over
 □ Verified quote is complete sentence: ___
 □ Confirmed quote under 300 characters: ___
 
-### OVERALL PERFORMANCE VERIFICATION:
+### PROSPECTIVE STUDENT COMPREHENSION VERIFICATION:
 □ All 5 sections completed above: YES/NO
 □ Lowest performing section identified: ___
 □ Override rule number applied: ___
-□ Overall performance matches override rule: YES/NO
+□ Prospective Student Comprehension matches override rule: YES/NO
 □ Double-checked: Overall cannot exceed lowest section: YES/NO
 
 **CRITICAL**: Any "NO" response requires re-evaluation before proceeding.
@@ -195,7 +195,7 @@ Overall Performance = _________ because lowest section scored _________ and over
 □ Section 5 points calculated: _____ → Performance: _____
 □ LOWEST section identified: _____
 □ Override rule applied: Rule #_____
-□ Overall performance assigned: _____
+□ Prospective Student Comprehension assigned: _____
 □ Verification: Does overall match override rule? YES/NO
 
 **If verification = NO, you MUST recalculate before proceeding.**
@@ -221,7 +221,7 @@ Use this EXACT structure - no deviations allowed:
 | 3 | School Resources & Support | **[LEVEL]** | [CONCISE_FOCUS_AREA] |
 | 4 | Financial Information & Payment Options | **[LEVEL]** | [CONCISE_FOCUS_AREA] |
 | 5 | Next Steps & Follow-up Planning | **[LEVEL]** | [CONCISE_FOCUS_AREA] |
-| 🎯 | **OVERALL PERFORMANCE** | **[OVERALL_LEVEL]** | **Primary Focus: [PRIMARY_FOCUS_CONCISE]** |
+| 🎯 | **PROSPECTIVE STUDENT COMPREHENSION** | **[OVERALL_LEVEL]** | **Primary Focus: [PRIMARY_FOCUS_CONCISE]** |
 
 ### SECTION 1 - Program Interest & Rapport Building
 **[PERFORMANCE_LEVEL]**
@@ -277,7 +277,7 @@ Use this EXACT structure - no deviations allowed:
 □ All timestamps use MM:SS format
 □ Table focus areas are 10-15 words maximum
 □ Section focus areas meet 28-42 word requirement with three components
-□ Overall performance follows override rules exactly
+□ Prospective Student Comprehension follows override rules exactly
 □ Zero subjective language used in evaluation
 
 **CRITICAL**: Any scorecard that cannot document objective point calculations for each section must be re-evaluated using this protocol.
